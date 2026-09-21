@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>가구 키워드 인텔리전스</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F6F8; --surface:#FFFFFF; --sunk:#EDEFF3; --line:#E4E7EC; --line2:#EFF1F4;
+  --ink:#0F1115; --ink2:#565E6E; --ink3:#8B93A3;
+  --good:#12715C; --goodbg:#E4F3EE; --info:#2F58A6; --infobg:#E7EDF9;
+  --warn:#9A6414; --warnbg:#F8EEDC; --bad:#A5372F; --badbg:#F9E7E4;
+  --shadow:0 1px 2px rgba(16,20,28,.05), 0 6px 20px -8px rgba(16,20,28,.10);
+  --kr:'IBM Plex Sans KR',system-ui,sans-serif; --mono:'Space Grotesk',var(--kr);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0C0E12; --surface:#14171D; --sunk:#1B1F26; --line:#242932; --line2:#1E222A;
+  --ink:#EEF0F4; --ink2:#A4ABBA; --ink3:#6E7688;
+  --good:#54C6A5; --goodbg:#11302A; --info:#8AA8EE; --infobg:#182238;
+  --warn:#E0A94F; --warnbg:#332616; --bad:#E58479; --badbg:#35201D;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -10px rgba(0,0,0,.6);}}
+:root[data-theme="dark"]{
+  --bg:#0C0E12; --surface:#14171D; --sunk:#1B1F26; --line:#242932; --line2:#1E222A;
+  --ink:#EEF0F4; --ink2:#A4ABBA; --ink3:#6E7688;
+  --good:#54C6A5; --goodbg:#11302A; --info:#8AA8EE; --infobg:#182238;
+  --warn:#E0A94F; --warnbg:#332616; --bad:#E58479; --badbg:#35201D;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -10px rgba(0,0,0,.6);}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--kr);font-size:15px;
+  line-height:1.6;-webkit-font-smoothing:antialiased;letter-spacing:-.005em}
+.wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+h1,h2,h3,h4{margin:0;font-weight:600;letter-spacing:-.022em;line-height:1.25}
+.n{font-family:var(--mono);font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+
+/* header */
+header{padding:44px 0 26px}
+h1{font-size:27px;font-weight:600}
+.sub{margin:8px 0 0;color:var(--ink2);font-size:15px;max-width:58ch}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:16px}
+.chip{font-size:12px;color:var(--ink2);background:var(--surface);border:1px solid var(--line);
+  padding:4px 11px;border-radius:99px}
+
+/* sticky nav — 카테고리 선택 */
+.navbar{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+nav{display:flex;gap:8px;align-items:center;max-width:1160px;margin:0 auto;padding:11px 24px;
+  overflow-x:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav .navlab{font-size:12px;color:var(--ink3);white-space:nowrap;margin-right:4px;
+  display:flex;align-items:center;gap:5px}
+nav .navlab svg{width:13px;height:13px;stroke:var(--ink3);fill:none;stroke-width:2}
+nav button{appearance:none;background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  font-family:var(--kr);font-size:15px;font-weight:500;color:var(--ink2);
+  padding:9px 17px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:8px;
+  transition:border-color .13s,color .13s,background .13s}
+nav button:hover{color:var(--ink);border-color:var(--ink3)}
+nav button[aria-selected="true"]{color:var(--surface);background:var(--ink);border-color:var(--ink);
+  font-weight:600}
+nav button:focus-visible{outline:2px solid var(--info);outline-offset:2px}
+nav button i{font-style:normal;font-family:var(--mono);font-size:12px;font-weight:600;
+  color:var(--ink3);background:var(--sunk);border-radius:99px;padding:1px 7px}
+nav button[aria-selected="true"] i{color:var(--ink);background:var(--bg)}
+
+/* section */
+section{margin-top:44px;scroll-margin-top:60px}
+.sh{margin-bottom:18px}
+.sh h2{font-size:19px;display:flex;align-items:baseline;gap:9px}
+.sh h2 span{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink3)}
+.sh p{margin:5px 0 0;font-size:13.5px;color:var(--ink3)}
+.lead{font-size:14.5px;color:var(--ink2);line-height:1.68;margin:0 0 18px;max-width:78ch}
+.lead b{color:var(--ink);font-weight:600}
+.note{font-size:13.5px;color:var(--ink3);line-height:1.68;margin:18px 0 0;max-width:78ch}
+.note b{color:var(--ink2);font-weight:500}
+
+/* cards grid — 카테고리 비교 */
+.cmp{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.cc{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px 18px;
+  box-shadow:var(--shadow);cursor:pointer;text-align:left;font-family:var(--kr);color:var(--ink);
+  width:100%;display:block;transition:border-color .13s,transform .13s,box-shadow .13s}
+.cc:hover{border-color:var(--ink3);transform:translateY(-2px);
+  box-shadow:0 2px 4px rgba(16,20,28,.06),0 12px 28px -10px rgba(16,20,28,.18)}
+.cc:focus-visible{outline:2px solid var(--info);outline-offset:2px}
+.cc[aria-current="true"]{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink),var(--shadow)}
+.cc .go{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:14px;
+  padding-top:13px;border-top:1px solid var(--line2);font-size:12.5px;font-weight:600;color:var(--info)}
+.cc .go .cur{font-size:11.5px;font-weight:500;color:var(--ink3)}
+.cc[aria-current="true"] .go{color:var(--ink)}
+.cc.lead-pick{border-color:color-mix(in srgb,var(--good) 40%,var(--line))}
+.cc-t{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.cc-t h4{font-size:16.5px}
+.cc dl{margin:0;display:grid;grid-template-columns:1fr auto;gap:9px 12px;font-size:13px}
+.cc dt{color:var(--ink3)}
+.cc dd{margin:0;text-align:right;font-family:var(--mono);font-weight:600;font-size:14px}
+.cc dd.g{color:var(--good)} .cc dd.b{color:var(--bad)}
+.cc p{font-size:13px;line-height:1.62;color:var(--ink2);margin:14px 0 0;padding-top:13px;
+  border-top:1px solid var(--line2)}
+
+/* pill */
+.pill{font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:99px;white-space:nowrap;
+  letter-spacing:0}
+.pill.good{background:var(--goodbg);color:var(--good)}
+.pill.ok{background:var(--infobg);color:var(--info)}
+.pill.warn{background:var(--warnbg);color:var(--warn)}
+.pill.bad{background:var(--badbg);color:var(--bad)}
+.pill.none{background:var(--sunk);color:var(--ink3)}
+
+/* kpi */
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(124px,1fr));gap:10px}
+.kp{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px 15px}
+.kp dt{font-size:12px;color:var(--ink3);margin:0 0 5px}
+.kp dd{margin:0;font-family:var(--mono);font-size:22px;font-weight:600;line-height:1.05;
+  letter-spacing:-.02em}
+.kp dd small{font-family:var(--kr);font-size:12.5px;font-weight:400;color:var(--ink3);margin-left:2px}
+
+/* map */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;
+  box-shadow:var(--shadow);position:relative;padding:8px}
+svg.chart{display:block;width:100%;height:auto;border-radius:8px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:13px;font-size:12.5px;color:var(--ink2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:8px;height:8px;border-radius:50%}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);
+  padding:10px 13px;font-size:12.5px;line-height:1.55;max-width:250px;opacity:0;
+  transition:opacity .1s;z-index:9;border-radius:9px;box-shadow:0 10px 30px -8px rgba(0,0,0,.45)}
+.tip b{font-size:13.5px;display:block;margin-bottom:4px}
+.dot{cursor:pointer}
+
+/* axis rows — 조밀 배치 + 펼침 */
+.ax{background:var(--surface);border:1px solid var(--line);border-radius:14px;
+  box-shadow:var(--shadow);overflow:hidden}
+.axh{display:grid;grid-template-columns:168px 1fr 76px 64px 64px 68px 26px;gap:12px;
+  padding:10px 16px;font-size:11.5px;color:var(--ink3);border-bottom:1px solid var(--line);
+  align-items:center}
+.axh div:nth-child(n+3){text-align:right}
+.axr{border-bottom:1px solid var(--line2)}
+.axr:last-child{border-bottom:0}
+.axr.dim{opacity:.55}
+.axt{display:grid;grid-template-columns:168px 1fr 76px 64px 64px 68px 26px;gap:12px;
+  padding:11px 16px;align-items:center;cursor:pointer;width:100%;background:none;border:0;
+  text-align:left;font-family:var(--kr);color:var(--ink);transition:background .12s}
+.axt:hover{background:var(--sunk)}
+.axt:focus-visible{outline:2px solid var(--info);outline-offset:-2px}
+.axn{display:flex;align-items:center;gap:7px;min-width:0}
+.axn strong{font-size:14.5px;font-weight:600;white-space:nowrap}
+.axv{font-family:var(--mono);font-size:14px;font-weight:600;text-align:right;
+  font-variant-numeric:tabular-nums}
+.axv.g{color:var(--good)} .axv.b{color:var(--bad)}
+.axv small{display:block;font-family:var(--kr);font-size:10.5px;font-weight:400;color:var(--ink3);
+  margin-top:1px}
+.axbar{display:flex;align-items:center;gap:9px;min-width:0}
+.axbar .t{flex:1;height:6px;border-radius:99px;background:color-mix(in srgb,var(--ink) 8%,transparent);
+  overflow:hidden;min-width:40px}
+.axbar .t i{display:block;height:100%;border-radius:99px;background:var(--info)}
+.axbar .t i.good{background:var(--good)} .axbar .t i.bad{background:var(--bad)}
+.axbar .l{font-family:var(--mono);font-size:11.5px;color:var(--ink3);white-space:nowrap}
+.chev{width:26px;text-align:center;color:var(--ink3);font-size:11px;transition:transform .16s}
+.axr.open .chev{transform:rotate(180deg)}
+.axd{display:none;padding:2px 16px 18px;border-top:1px dashed var(--line);margin:0 16px 0;
+  animation:fade .16s ease-out}
+.axr.open .axd{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+.axd .say{font-size:13.8px;line-height:1.65;margin:13px 0 10px;max-width:70ch}
+.axd .ex{font-size:12.5px;color:var(--ink3);line-height:1.75;margin:0}
+.axd .ex b{color:var(--ink2);font-weight:500;margin-right:5px}
+.split{margin:13px 0 0;padding-top:12px;border-top:1px dashed var(--line)}
+.split-h{font-size:11.5px;color:var(--ink3);margin:0 0 8px}
+.sp{display:grid;grid-template-columns:106px 1fr auto;gap:12px;align-items:center;
+  padding:7px 11px;border-radius:8px;background:var(--sunk);margin-bottom:5px}
+.sp:last-child{margin-bottom:0}
+.sp-n{font-size:12.5px;font-weight:500}
+.sp-e{font-size:11.5px;color:var(--ink3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sp-c{font-family:var(--mono);font-size:14px;font-weight:600;white-space:nowrap}
+.sp-c small{font-family:var(--kr);font-weight:400;font-size:10.5px;color:var(--ink3);margin-left:5px}
+.sp-c.g{color:var(--good)} .sp-c.b{color:var(--bad)}
+.axhint{font-size:12px;color:var(--ink3);margin:10px 0 0}
+
+/* 05 경로 리스트 — 단일 표 */
+.pbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:11px}
+.plab{font-size:12px;color:var(--ink3);white-space:nowrap;margin-right:2px}
+.psegs{display:flex;gap:7px;flex-wrap:wrap}
+.psegs button{appearance:none;background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  font-family:var(--kr);font-size:14.5px;font-weight:500;color:var(--ink2);padding:9px 16px;
+  cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:8px;
+  transition:border-color .13s,color .13s,background .13s}
+.psegs button:hover{color:var(--ink);border-color:var(--ink3)}
+.psegs button[aria-pressed="true"]{color:var(--surface);background:var(--ink);border-color:var(--ink);
+  font-weight:600}
+.psegs button:focus-visible{outline:2px solid var(--info);outline-offset:2px}
+.psegs button i{font-style:normal;font-family:var(--mono);font-size:12px;font-weight:600;
+  color:var(--ink3);background:var(--sunk);border-radius:99px;padding:1px 7px}
+.psegs button[aria-pressed="true"] i{color:var(--ink);background:var(--bg)}
+.pgate{font-family:var(--mono);font-size:11.5px;color:var(--ink3);background:var(--sunk);
+  border-radius:7px;padding:6px 11px;margin-left:auto}
+.prole{font-size:13.2px;color:var(--ink2);margin:0 0 13px;line-height:1.62}
+.prole b{font-weight:600;color:var(--ink)}
+.pt{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  box-shadow:var(--shadow)}
+.pscroll{overflow-x:auto}
+.pt table{border-collapse:separate;border-spacing:0;width:100%;font-size:13.5px;min-width:780px}
+.pt th{text-align:right;font-weight:500;font-size:11.5px;color:var(--ink3);padding:10px 13px;
+  background:var(--surface);white-space:nowrap;border-bottom:1px solid var(--line)}
+.pt th:first-child,.pt td:first-child{text-align:left;padding-left:17px}
+.pt th:last-child,.pt td:last-child{padding-right:17px;text-align:left}
+.pt td{padding:9px 13px;border-bottom:1px solid var(--line2);text-align:right;
+  font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pt tbody tr:last-child td{border-bottom:0}
+.pt tbody tr:hover td{background:var(--sunk)}
+.pt .k{font-family:var(--kr);font-weight:500;font-size:14px;text-align:left}
+.pt .nd{font-family:var(--kr);font-size:12px;color:var(--ink3);text-align:left}
+.pt td.hi{font-weight:600;color:var(--ink)}
+.route{display:inline-flex;gap:3px;margin-left:7px;vertical-align:1px}
+.route b{font-family:var(--mono);font-size:9.5px;font-weight:700;padding:1px 5px;border-radius:4px}
+.route b.m{background:var(--infobg);color:var(--info)}
+.route b.o{background:var(--goodbg);color:var(--good)}
+.route b.a{background:var(--warnbg);color:var(--warn)}
+.pempty{padding:28px 17px;color:var(--ink3);font-size:13.5px;line-height:1.65}
+
+/* table */
+.tbar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:13px}
+.search{position:relative;flex:1;min-width:200px;max-width:320px}
+.search input{width:100%;font-family:var(--kr);font-size:13.5px;color:var(--ink);
+  background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  padding:8px 32px 8px 34px;outline:none;transition:border-color .13s,box-shadow .13s}
+.search input::placeholder{color:var(--ink3)}
+.search input:focus{border-color:var(--info);box-shadow:0 0 0 3px color-mix(in srgb,var(--info) 14%,transparent)}
+.search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);
+  width:14px;height:14px;stroke:var(--ink3);fill:none;stroke-width:2;pointer-events:none}
+.search .clr{position:absolute;right:6px;top:50%;transform:translateY(-50%);appearance:none;
+  background:none;border:0;color:var(--ink3);cursor:pointer;font-size:16px;line-height:1;
+  padding:4px 6px;border-radius:6px;display:none}
+.search .clr:hover{background:var(--sunk);color:var(--ink)}
+.search.has .clr{display:block}
+.segs{display:flex;gap:3px;background:var(--sunk);padding:3px;border-radius:10px}
+.segs button{appearance:none;background:none;border:0;border-radius:7px;color:var(--ink3);
+  font-family:var(--kr);font-size:12.5px;font-weight:500;padding:6px 11px;cursor:pointer;
+  white-space:nowrap;transition:background .13s,color .13s}
+.segs button:hover{color:var(--ink2)}
+.segs button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.segs button:focus-visible{outline:2px solid var(--info);outline-offset:1px}
+.cnt{font-size:12.5px;color:var(--ink3);font-family:var(--mono);margin-left:auto}
+.tw{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  box-shadow:var(--shadow)}
+.ts{overflow:auto;max-height:600px}
+table.kt{border-collapse:separate;border-spacing:0;width:100%;font-size:13.5px;min-width:800px}
+.kt th{text-align:right;font-weight:500;font-size:12px;color:var(--ink3);padding:11px 14px;
+  background:var(--surface);white-space:nowrap;cursor:pointer;position:sticky;top:0;z-index:2;
+  border-bottom:1px solid var(--line);user-select:none}
+.kt th:hover{color:var(--ink)}
+.kt th:first-child,.kt td:first-child{text-align:left;padding-left:18px}
+.kt th:last-child,.kt td:last-child{padding-right:18px}
+.kt th[data-a]::after{content:"";opacity:0}
+.kt th.up::after{content:" ↑";opacity:1;color:var(--ink)}
+.kt th.down::after{content:" ↓";opacity:1;color:var(--ink)}
+.kt td{padding:10px 14px;border-bottom:1px solid var(--line2);text-align:right;
+  font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.kt tbody tr:last-child td{border-bottom:0}
+.kt tbody tr:hover td{background:var(--sunk)}
+.kt .kw{font-family:var(--kr);font-weight:500;font-size:14px}
+.kt .kw mark{background:color-mix(in srgb,var(--info) 22%,transparent);color:inherit;
+  border-radius:3px;padding:0 1px}
+.kt .tag{font-family:var(--kr);color:var(--ink3);font-size:12.5px;text-align:left}
+.qd{font-family:var(--mono);font-size:12.5px;font-weight:600;padding:2px 8px;border-radius:6px}
+.qB{background:var(--goodbg);color:var(--good)} .qA{background:var(--warnbg);color:var(--warn)}
+.qC{background:var(--infobg);color:var(--info)} .qD{background:var(--badbg);color:var(--bad)}
+.empty{padding:34px 18px;text-align:center;color:var(--ink3);font-size:13.5px}
+
+/* insight */
+.verdict{font-size:15.5px;font-weight:500;line-height:1.62;padding:16px 20px;border-radius:12px;
+  background:var(--goodbg);color:var(--good);margin-bottom:14px}
+.verdict.warn{background:var(--badbg);color:var(--bad)}
+.two-ins{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ic{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px 8px;
+  box-shadow:var(--shadow)}
+.ic h3{font-size:16px}
+.ic .role{font-size:12.5px;color:var(--ink3);margin:4px 0 14px}
+.ic ul{margin:0;padding:0;list-style:none}
+.ic li{padding:12px 0;border-bottom:1px solid var(--line2);font-size:13.8px;line-height:1.62}
+.ic li:last-child{border-bottom:0}
+.ic li em{display:block;font-style:normal;font-family:var(--mono);color:var(--ink3);
+  font-size:12px;margin-top:5px}
+
+/* caveat */
+details.cav{background:var(--surface);border:1px solid var(--line);border-radius:14px;
+  box-shadow:var(--shadow);overflow:hidden}
+details.cav summary{padding:16px 20px;cursor:pointer;font-weight:600;font-size:15px;
+  list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px}
+details.cav summary::-webkit-details-marker{display:none}
+details.cav summary::after{content:"＋";color:var(--ink3);font-weight:400}
+details.cav[open] summary::after{content:"－"}
+details.cav summary:hover{background:var(--sunk)}
+.cavbody{padding:0 20px 18px}
+.cavbody ol{margin:0;padding-left:19px;font-size:13.5px;color:var(--ink2);line-height:1.72}
+.cavbody li{margin-bottom:10px} .cavbody li:last-child{margin-bottom:0}
+.cavbody b{color:var(--ink);font-weight:600}
+.formula{font-size:12.5px;color:var(--ink3);margin-top:15px;padding-top:13px;
+  border-top:1px solid var(--line2);line-height:1.7}
+footer{margin:44px 0 60px;padding-top:18px;border-top:1px solid var(--line);
+  font-size:12.5px;color:var(--ink3);display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
+
+@media (max-width:900px){
+  .wrap{padding:0 16px}
+  .cmp,.two-ins{grid-template-columns:1fr}
+  .pgate{margin-left:0;width:100%}
+  .axc{grid-template-columns:1fr;gap:16px}
+  .sp{grid-template-columns:1fr auto} .sp-e{display:none}
+  .axh{display:none}
+  .axt{grid-template-columns:1fr 62px 58px 22px;gap:9px;padding:11px 13px}
+  .axt .axbar,.axt .axv.hide-m{display:none}
+  .axd{padding:2px 13px 16px;margin:0 13px}
+  h1{font-size:23px}
+  nav{padding:9px 16px}
+  nav button{font-size:14px;padding:8px 13px}
+  .psegs button{font-size:13.5px;padding:8px 13px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>가구 키워드 인텔리전스</h1>
+  <p class="sub">브랜드 검색을 걷어내고, 수요·공급·반응으로 빈자리를 찾습니다.</p>
+  <div class="chips">
+    <span class="chip">2026년 8월</span>
+    <span class="chip">카테고리 3개</span>
+    <span class="chip">일반 키워드 267개</span>
+    <span class="chip">네이버 · 아이템스카우트</span>
+  </div>
+</header>
+<main id="top"></main>
+</div>
+<div class="navbar"><nav id="tabs" role="tablist"><span class="navlab">
+  <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>카테고리</span></nav></div>
+<div class="wrap"><main id="view"></main>
+<footer>
+  <span>카테고리당 상위 500개 키워드 중 상품수 확보분</span>
+  <span class="n">경쟁강도 = 상품수 ÷ 총검색수</span>
+</footer>
+</div>
+<script>const DATA={"간이/접이식의자":{"rows":[{"kw":"접이식의자","s":29980,"p":1994827,"ci":66.54,"mctr":0.9,"cpc":4130,"q":"B","cl":"기능","nd":["좁은 공간","가변·다용도"],"sc":5.31},{"kw":"아코디언의자","s":3680,"p":14696,"ci":3.99,"mctr":2.72,"cpc":540,"q":"B","cl":"기능","nd":["가변·다용도"],"sc":8.6},{"kw":"간이의자","s":5180,"p":676300,"ci":130.56,"mctr":1.02,"cpc":1270,"q":"B","cl":"용도/공간","nd":["가성비"],"sc":5.31},{"kw":"접이식식탁의자","s":1200,"p":315995,"ci":263.33,"mctr":0.73,"cpc":730,"q":"B","cl":"기능","nd":["좁은 공간","가변·다용도"],"sc":5.24},{"kw":"접이식스툴","s":2330,"p":474986,"ci":203.86,"mctr":1.34,"cpc":510,"q":"B","cl":"기능","nd":["좁은 공간","가변·다용도"],"sc":5.34},{"kw":"접이식간이의자","s":2260,"p":463036,"ci":204.88,"mctr":3.06,"cpc":480,"q":"B","cl":"기능","nd":["좁은 공간","가변·다용도","가성비"],"sc":6.0},{"kw":"접의식의자","s":2370,"p":2054306,"ci":866.8,"mctr":0.66,"cpc":4370,"q":"A","cl":"일반/기타","nd":["일반 탐색"],"sc":4.57},{"kw":"플라스틱의자","s":8440,"p":444803,"ci":52.7,"mctr":5.1,"cpc":2950,"q":"B","cl":"소재","nd":["가성비"],"sc":6.63},{"kw":"간이플라스틱의자","s":1180,"p":88111,"ci":74.67,"mctr":2.85,"cpc":880,"q":"B","cl":"소재","nd":["가성비"],"sc":6.79},{"kw":"접이식등받이의자","s":1030,"p":362486,"ci":351.93,"mctr":1.77,"cpc":740,"q":"A","cl":"기능","nd":["좁은 공간","가변·다용도"],"sc":5.3},{"kw":"의자","s":73900,"p":11050923,"ci":149.54,"mctr":0.85,"cpc":1930,"q":"B","cl":"일반/기타","nd":["일반 탐색"],"sc":5.0},{"kw":"자바라의자","s":770,"p":10484,"ci":13.62,"mctr":2.62,"cpc":650,"q":"B","cl":"기능","nd":["가변·다용도"],"sc":7.89},{"kw":"접이식원목의자","s":350,"p":175714,"ci":502.04,"mctr":4.42,"cpc":230,"q":"A","cl":"소재","nd":["좁은 공간","가변·다용도","인테리어 연출"],"sc":5.71},{"kw":"접이식높은의자","s":390,"p":66351,"ci":170.13,"mctr":5.35,"cpc":100,"q":"B","cl":"인원/사이즈","nd":["좁은 공간","가변·다용도"],"sc":6.74},{"kw":"접는의자","s":570,"p":73464,"ci":128.88,"mctr":1.59,"cpc":3520,"q":"B","cl":"기능","nd":["좁은 공간"],"sc":6.1},{"kw":"플라스틱접이식의자","s":350,"p":98373,"ci":281.07,"mctr":1.01,"cpc":590,"q":"B","cl":"소재","nd":["좁은 공간","가변·다용도","가성비"],"sc":5.43},{"kw":"현관접이식의자","s":210,"p":55391,"ci":263.77,"mctr":3.63,"cpc":260,"q":"C","cl":"기능","nd":["좁은 공간","가변·다용도"],"sc":6.17},{"kw":"간의의자","s":1010,"p":42475,"ci":42.05,"mctr":0.35,"cpc":720,"q":"B","cl":"일반/기타","nd":["일반 탐색"],"sc":6.4},{"kw":"접이식플라스틱의자","s":390,"p":98436,"ci":252.4,"mctr":2.0,"cpc":840,"q":"B","cl":"소재","nd":["좁은 공간","가변·다용도","가성비"],"sc":5.8},{"kw":"폴딩의자","s":650,"p":1996887,"ci":3072.13,"mctr":0.23,"cpc":1290,"q":"A","cl":"기능","nd":["좁은 공간"],"sc":3.49},{"kw":"접이의자","s":480,"p":2072162,"ci":4317.0,"mctr":1.22,"cpc":4830,"q":"A","cl":"일반/기타","nd":["일반 탐색"],"sc":3.94},{"kw":"접이식폴딩의자","s":250,"p":2095354,"ci":8381.42,"mctr":0.55,"cpc":740,"q":"D","cl":"기능","nd":["좁은 공간","가변·다용도"],"sc":2.66},{"kw":"등받이접이식의자","s":300,"p":358824,"ci":1196.08,"mctr":1.77,"cpc":720,"q":"A","cl":"기능","nd":["좁은 공간","가변·다용도"],"sc":4.53},{"kw":"접이식나무의자","s":180,"p":68047,"ci":378.04,"mctr":2.44,"cpc":620,"q":"D","cl":"소재","nd":["좁은 공간","가변·다용도","인테리어 연출"],"sc":5.03},{"kw":"서서앉는의자","s":340,"p":3638,"ci":10.7,"mctr":1.59,"cpc":420,"q":"B","cl":"용도/공간","nd":["가변·다용도"],"sc":7.3},{"kw":"폴딩체어","s":1310,"p":1975989,"ci":1508.39,"mctr":0.25,"cpc":1070,"q":"A","cl":"기능","nd":["좁은 공간"],"sc":4.17},{"kw":"투명접이식의자","s":260,"p":38966,"ci":149.87,"mctr":1.08,"cpc":210,"q":"C","cl":"소재","nd":["좁은 공간","가변·다용도","인테리어 연출"],"sc":6.06},{"kw":"간이/접이식의자","s":20,"p":465629,"ci":23281.45,"mctr":0.0,"cpc":70,"q":"D","cl":"기능","nd":["좁은 공간","가변·다용도","가성비"],"sc":1.17},{"kw":"식탁접이식의자","s":150,"p":305319,"ci":2035.46,"mctr":0.7,"cpc":520,"q":"D","cl":"기능","nd":["좁은 공간","가변·다용도"],"sc":3.37},{"kw":"골프갤러리의자","s":200,"p":957,"ci":4.79,"mctr":0.17,"cpc":70,"q":"C","cl":"용도/공간","nd":["업소·행사"],"sc":5.94},{"kw":"프라스틱의자","s":1470,"p":440417,"ci":299.6,"mctr":8.54,"cpc":1550,"q":"B","cl":"소재","nd":["가성비"],"sc":6.31},{"kw":"입식의자","s":290,"p":109952,"ci":379.14,"mctr":0.14,"cpc":930,"q":"A","cl":"용도/공간","nd":["가변·다용도"],"sc":4.29},{"kw":"접이식쿠션의자","s":210,"p":130798,"ci":622.85,"mctr":0.33,"cpc":350,"q":"D","cl":"기능","nd":["좁은 공간","가변·다용도"],"sc":3.91},{"kw":"접이식발판","s":1220,"p":335291,"ci":274.83,"mctr":2.17,"cpc":460,"q":"B","cl":"기능","nd":["좁은 공간","수납","가변·다용도"],"sc":5.74},{"kw":"접이식철제의자","s":300,"p":106186,"ci":353.95,"mctr":2.92,"cpc":1020,"q":"A","cl":"소재","nd":["좁은 공간","관리·내구","가변·다용도"],"sc":5.71},{"kw":"교회의자","s":1340,"p":61262,"ci":45.72,"mctr":8.74,"cpc":3680,"q":"B","cl":"용도/공간","nd":["업소·행사"],"sc":7.71},{"kw":"접의자","s":320,"p":35713,"ci":111.6,"mctr":2.8,"cpc":4040,"q":"B","cl":"일반/기타","nd":["일반 탐색"],"sc":6.91},{"kw":"튼튼한접이식의자","s":180,"p":70012,"ci":388.96,"mctr":0.57,"cpc":280,"q":"D","cl":"기능","nd":["좁은 공간","관리·내구","가변·다용도"],"sc":4.26},{"kw":"접이식현관의자","s":100,"p":57584,"ci":575.84,"mctr":0.38,"cpc":350,"q":"D","cl":"기능","nd":["좁은 공간","가변·다용도"],"sc":4.09},{"kw":"간편의자","s":190,"p":82006,"ci":431.61,"mctr":1.82,"cpc":280,"q":"D","cl":"용도/공간","nd":["좁은 공간"],"sc":4.89},{"kw":"무지개의자","s":450,"p":12952,"ci":28.78,"mctr":3.76,"cpc":330,"q":"B","cl":"스타일","nd":["인테리어 연출"],"sc":7.86},{"kw":"벽걸이의자","s":90,"p":57249,"ci":636.1,"mctr":0.0,"cpc":70,"q":"D","cl":"기능","nd":["좁은 공간"],"sc":3.69},{"kw":"간이접이식의자","s":190,"p":473899,"ci":2494.21,"mctr":0.0,"cpc":70,"q":"D","cl":"기능","nd":["좁은 공간","가변·다용도","가성비"],"sc":2.37},{"kw":"철제접이식의자","s":190,"p":112722,"ci":593.27,"mctr":2.53,"cpc":930,"q":"D","cl":"소재","nd":["좁은 공간","관리·내구","가변·다용도"],"sc":4.71},{"kw":"폴딩스툴","s":200,"p":493507,"ci":2467.53,"mctr":0.69,"cpc":260,"q":"D","cl":"기능","nd":["좁은 공간"],"sc":2.97},{"kw":"서서의자","s":80,"p":10006,"ci":125.08,"mctr":0.52,"cpc":70,"q":"C","cl":"용도/공간","nd":["가변·다용도"],"sc":5.17},{"kw":"미니플라스틱의자","s":60,"p":26657,"ci":444.28,"mctr":0.6,"cpc":70,"q":"D","cl":"소재","nd":["좁은 공간","가성비"],"sc":4.71},{"kw":"강당의자","s":210,"p":54385,"ci":258.98,"mctr":4.05,"cpc":4930,"q":"C","cl":"용도/공간","nd":["업소·행사"],"sc":6.34},{"kw":"포켓체어","s":50,"p":55788,"ci":1115.76,"mctr":0.0,"cpc":70,"q":"D","cl":"일반/기타","nd":["좁은 공간"],"sc":3.4},{"kw":"브로몰딩의자","s":40,"p":2608,"ci":65.2,"mctr":0.0,"cpc":1310,"q":"C","cl":"소재","nd":["가성비"],"sc":4.46},{"kw":"카페접이식의자","s":40,"p":166159,"ci":4153.98,"mctr":0.0,"cpc":220,"q":"D","cl":"기능","nd":["좁은 공간","가변·다용도","업소·행사"],"sc":2.17},{"kw":"등받이간이의자","s":120,"p":126839,"ci":1056.99,"mctr":0.39,"cpc":70,"q":"D","cl":"기능","nd":["가성비"],"sc":3.46},{"kw":"포켓의자","s":50,"p":55788,"ci":1115.76,"mctr":0.73,"cpc":70,"q":"D","cl":"일반/기타","nd":["좁은 공간"],"sc":4.1},{"kw":"발판","s":6890,"p":2763374,"ci":401.07,"mctr":0.79,"cpc":1430,"q":"A","cl":"기능","nd":["수납"],"sc":4.8},{"kw":"간이등받이의자","s":50,"p":131925,"ci":2638.5,"mctr":0.0,"cpc":70,"q":"D","cl":"기능","nd":["가성비"],"sc":2.4},{"kw":"간이보조의자","s":20,"p":184128,"ci":9206.4,"mctr":0.0,"cpc":70,"q":"D","cl":"용도/공간","nd":["가성비"],"sc":1.8},{"kw":"등받이미니의자","s":80,"p":48840,"ci":610.5,"mctr":0.0,"cpc":70,"q":"D","cl":"인원/사이즈","nd":["좁은 공간"],"sc":3.94},{"kw":"미니등받이의자","s":280,"p":54571,"ci":194.9,"mctr":0.77,"cpc":460,"q":"C","cl":"인원/사이즈","nd":["좁은 공간"],"sc":5.69},{"kw":"고급접이식의자","s":30,"p":30790,"ci":1026.33,"mctr":0.0,"cpc":970,"q":"D","cl":"기능","nd":["좁은 공간","가변·다용도","인테리어 연출"],"sc":3.69},{"kw":"접히는의자","s":70,"p":5858,"ci":83.69,"mctr":0.0,"cpc":1050,"q":"C","cl":"기능","nd":["좁은 공간"],"sc":4.71},{"kw":"행사용접이식의자","s":50,"p":24745,"ci":494.9,"mctr":6.9,"cpc":1180,"q":"D","cl":"기능","nd":["좁은 공간","가변·다용도","업소·행사"],"sc":5.91},{"kw":"쿠션간이의자","s":20,"p":42137,"ci":2106.85,"mctr":0.0,"cpc":70,"q":"D","cl":"기능","nd":["가성비"],"sc":3.34},{"kw":"사출접의자","s":20,"p":1614,"ci":80.7,"mctr":2.5,"cpc":1470,"q":"C","cl":"소재","nd":["가성비"],"sc":5.54},{"kw":"야외의자","s":4640,"p":1421490,"ci":306.36,"mctr":3.59,"cpc":5010,"q":"A","cl":"용도/공간","nd":["일반 탐색"],"sc":5.86},{"kw":"콘서트의자","s":120,"p":6017,"ci":50.14,"mctr":0.24,"cpc":70,"q":"C","cl":"용도/공간","nd":["업소·행사"],"sc":5.26},{"kw":"투명의자","s":1170,"p":218457,"ci":186.72,"mctr":0.51,"cpc":470,"q":"B","cl":"소재","nd":["인테리어 연출"],"sc":5.06},{"kw":"포장마차의자","s":930,"p":25886,"ci":27.83,"mctr":1.58,"cpc":900,"q":"B","cl":"용도/공간","nd":["업소·행사"],"sc":7.31},{"kw":"포차의자","s":260,"p":25388,"ci":97.65,"mctr":2.85,"cpc":790,"q":"C","cl":"용도/공간","nd":["업소·행사"],"sc":6.87},{"kw":"간이접이의자","s":20,"p":476224,"ci":23811.2,"mctr":0.0,"cpc":70,"q":"D","cl":"용도/공간","nd":["가성비"],"sc":1.0},{"kw":"리클라이너의자","s":13880,"p":306185,"ci":22.06,"mctr":2.39,"cpc":1050,"q":"B","cl":"기능","nd":["일반 탐색"],"sc":6.57}],"cards":[{"name":"기능","n":31,"s":68050,"share":38.7,"ci":575.8,"mctr":0.69,"cpc":520,"sc":4.26,"b":9,"lab":"경쟁 빡빡함","tone":"warn","say":"경쟁이 평균의 1.9배입니다. 이미 파는 상품이 있다면 방어하되, 여기서 종류를 늘리진 마세요.","splits":[],"ex":["접이식의자","리클라이너의자","발판","아코디언의자","접이식스툴","접이식간이의자","폴딩체어"]},{"name":"소재","n":14,"s":14400,"share":8.2,"ci":266.7,"mctr":2.47,"cpc":860,"sc":5.63,"b":6,"lab":"들어갈 만함","tone":"ok","say":"경쟁은 평균보다 낮지만 검색 비중이 8.2%로 작습니다. 보완 라인입니다. 광고 반응은 평균의 2.8배로 좋습니다.","splits":[],"ex":["플라스틱의자","프라스틱의자","간이플라스틱의자","투명의자","접이식플라스틱의자","접이식원목의자","플라스틱접이식의자"]},{"name":"용도/공간","n":14,"s":13820,"share":7.9,"ci":127.8,"mctr":1.3,"cpc":605,"sc":5.59,"b":4,"lab":"지금 파고들 곳","tone":"good","say":"규모는 작지만 경쟁이 평균의 2.4분의 1입니다. 리스크 적은 테스트 자리입니다.","splits":[],"ex":["간이의자","야외의자","교회의자","포장마차의자","서서앉는의자","입식의자","포차의자"]},{"name":"인원/사이즈","n":3,"s":750,"share":0.4,"ci":194.9,"mctr":0.77,"cpc":100,"sc":5.69,"b":1,"lab":"표본 부족","tone":"none","say":"키워드 3개, 검색 비중 0.4%로 표본이 너무 작습니다. 경쟁강도 194.9는 참고만 하세요.","splits":[],"ex":["접이식높은의자","미니등받이의자","등받이미니의자"]},{"name":"스타일","n":1,"s":450,"share":0.3,"ci":28.8,"mctr":3.76,"cpc":330,"sc":7.86,"b":1,"lab":"표본 부족","tone":"none","say":"키워드 1개, 검색 비중 0.3%로 표본이 너무 작습니다. 경쟁강도 28.8는 참고만 하세요. 광고 반응은 평균의 4.3배로 좋습니다.","splits":[],"ex":["무지개의자"]},{"name":"일반/기타","n":7,"s":78180,"share":44.5,"ci":866.8,"mctr":0.73,"cpc":1930,"sc":4.57,"b":3,"lab":"분류 불가","tone":"none","say":"'식탁' '의자'처럼 조건이 붙지 않은 검색입니다. 검색의 44.5%를 차지하지만 경쟁강도 866.8로 극심하고, 무엇을 원하는지 알 수 없어 소싱 판단에 쓸 수 없습니다.","splits":[],"ex":["의자","접의식의자","간의의자","접이의자","접의자","포켓체어","포켓의자"]}],"md":[{"kw":"아코디언의자","s":3680,"p":14696,"ci":3.99,"mctr":2.72,"cpc":540,"q":"B","cl":"기능","nd":["가변·다용도"],"sc":8.6,"dual":false},{"kw":"교회의자","s":1340,"p":61262,"ci":45.72,"mctr":8.74,"cpc":3680,"q":"B","cl":"용도/공간","nd":["업소·행사"],"sc":7.71,"dual":false},{"kw":"간이플라스틱의자","s":1180,"p":88111,"ci":74.67,"mctr":2.85,"cpc":880,"q":"B","cl":"소재","nd":["가성비"],"sc":6.79,"dual":false},{"kw":"플라스틱의자","s":8440,"p":444803,"ci":52.7,"mctr":5.1,"cpc":2950,"q":"B","cl":"소재","nd":["가성비"],"sc":6.63,"dual":false},{"kw":"리클라이너의자","s":13880,"p":306185,"ci":22.06,"mctr":2.39,"cpc":1050,"q":"B","cl":"기능","nd":["일반 탐색"],"sc":6.57,"dual":false},{"kw":"간의의자","s":1010,"p":42475,"ci":42.05,"mctr":0.35,"cpc":720,"q":"B","cl":"일반/기타","nd":["일반 탐색"],"sc":6.4,"dual":false},{"kw":"프라스틱의자","s":1470,"p":440417,"ci":299.6,"mctr":8.54,"cpc":1550,"q":"B","cl":"소재","nd":["가성비"],"sc":6.31,"dual":false},{"kw":"접이식간이의자","s":2260,"p":463036,"ci":204.88,"mctr":3.06,"cpc":480,"q":"B","cl":"기능","nd":["좁은 공간","가변·다용도","가성비"],"sc":6.0,"dual":false},{"kw":"야외의자","s":4640,"p":1421490,"ci":306.36,"mctr":3.59,"cpc":5010,"q":"A","cl":"용도/공간","nd":["일반 탐색"],"sc":5.86,"dual":false},{"kw":"접이식발판","s":1220,"p":335291,"ci":274.83,"mctr":2.17,"cpc":460,"q":"B","cl":"기능","nd":["좁은 공간","수납","가변·다용도"],"sc":5.74,"dual":false},{"kw":"접이식스툴","s":2330,"p":474986,"ci":203.86,"mctr":1.34,"cpc":510,"q":"B","cl":"기능","nd":["좁은 공간","가변·다용도"],"sc":5.34,"dual":false},{"kw":"접이식의자","s":29980,"p":1994827,"ci":66.54,"mctr":0.9,"cpc":4130,"q":"B","cl":"기능","nd":["좁은 공간","가변·다용도"],"sc":5.31,"dual":false},{"kw":"간이의자","s":5180,"p":676300,"ci":130.56,"mctr":1.02,"cpc":1270,"q":"B","cl":"용도/공간","nd":["가성비"],"sc":5.31,"dual":false},{"kw":"접이식등받이의자","s":1030,"p":362486,"ci":351.93,"mctr":1.77,"cpc":740,"q":"A","cl":"기능","nd":["좁은 공간","가변·다용도"],"sc":5.3,"dual":false},{"kw":"접이식식탁의자","s":1200,"p":315995,"ci":263.33,"mctr":0.73,"cpc":730,"q":"B","cl":"기능","nd":["좁은 공간","가변·다용도"],"sc":5.24,"dual":false},{"kw":"투명의자","s":1170,"p":218457,"ci":186.72,"mctr":0.51,"cpc":470,"q":"B","cl":"소재","nd":["인테리어 연출"],"sc":5.06,"dual":false},{"kw":"의자","s":73900,"p":11050923,"ci":149.54,"mctr":0.85,"cpc":1930,"q":"B","cl":"일반/기타","nd":["일반 탐색"],"sc":5.0,"dual":false},{"kw":"발판","s":6890,"p":2763374,"ci":401.07,"mctr":0.79,"cpc":1430,"q":"A","cl":"기능","nd":["수납"],"sc":4.8,"dual":false},{"kw":"접의식의자","s":2370,"p":2054306,"ci":866.8,"mctr":0.66,"cpc":4370,"q":"A","cl":"일반/기타","nd":["일반 탐색"],"sc":4.57,"dual":false},{"kw":"폴딩체어","s":1310,"p":1975989,"ci":1508.39,"mctr":0.25,"cpc":1070,"q":"A","cl":"기능","nd":["좁은 공간"],"sc":4.17,"dual":false}],"lead":"검색 비중 5% 이상 축 가운데 <b>용도/공간</b>이 가장 비어 있고(경쟁강도 127.8), <b>기능</b>이 가장 포화입니다(575.8).","sum":{"n":70,"s":175650,"medS":285.0,"medC":302.98,"medP":98404.5,"mob":75.3,"cpc":605,"mctr":0.875,"qA":11,"qB":24,"qC":11,"qD":24,"top20":93.6},"org":[{"kw":"자바라의자","s":770,"p":10484,"ci":13.62,"mctr":2.62,"cpc":650,"q":"B","cl":"기능","nd":["가변·다용도"],"sc":7.89,"dual":false},{"kw":"무지개의자","s":450,"p":12952,"ci":28.78,"mctr":3.76,"cpc":330,"q":"B","cl":"스타일","nd":["인테리어 연출"],"sc":7.86,"dual":false},{"kw":"포장마차의자","s":930,"p":25886,"ci":27.83,"mctr":1.58,"cpc":900,"q":"B","cl":"용도/공간","nd":["업소·행사"],"sc":7.31,"dual":false},{"kw":"서서앉는의자","s":340,"p":3638,"ci":10.7,"mctr":1.59,"cpc":420,"q":"B","cl":"용도/공간","nd":["가변·다용도"],"sc":7.3,"dual":false},{"kw":"포차의자","s":260,"p":25388,"ci":97.65,"mctr":2.85,"cpc":790,"q":"C","cl":"용도/공간","nd":["업소·행사"],"sc":6.87,"dual":false}],"ad":[{"kw":"접이식발판","s":1220,"p":335291,"ci":274.83,"mctr":2.17,"cpc":460,"q":"B","cl":"기능","nd":["좁은 공간","수납","가변·다용도"],"sc":5.74,"dual":false}],"gate":{"cpc":460,"ctr":0.88,"dual":0,"orgN":5,"adN":1}},"식탁테이블":{"rows":[{"kw":"식탁","s":57100,"p":6151611,"ci":107.73,"mctr":2.79,"cpc":1220,"q":"A","cl":"일반/기타","nd":["일반 탐색"],"sc":5.08},{"kw":"접이식식탁","s":15940,"p":834885,"ci":52.38,"mctr":2.98,"cpc":2490,"q":"B","cl":"기능","nd":["좁은 공간","가변·다용도"],"sc":5.41},{"kw":"원형식탁","s":14720,"p":729299,"ci":49.54,"mctr":0.62,"cpc":2050,"q":"B","cl":"형태","nd":["형태 선호"],"sc":4.38},{"kw":"확장형식탁","s":15980,"p":166459,"ci":10.42,"mctr":1.54,"cpc":640,"q":"B","cl":"형태","nd":["인원 수용","가변·다용도"],"sc":6.21},{"kw":"테이블","s":21280,"p":12884803,"ci":605.49,"mctr":0.69,"cpc":1600,"q":"A","cl":"일반/기타","nd":["일반 탐색"],"sc":4.07},{"kw":"원형테이블","s":12990,"p":1264850,"ci":97.37,"mctr":0.99,"cpc":2260,"q":"A","cl":"형태","nd":["형태 선호"],"sc":4.21},{"kw":"세라믹식탁","s":30750,"p":219749,"ci":7.15,"mctr":2.1,"cpc":1920,"q":"B","cl":"소재","nd":["관리·내구"],"sc":6.17},{"kw":"원목테이블","s":9260,"p":1248740,"ci":134.85,"mctr":4.33,"cpc":2760,"q":"A","cl":"소재","nd":["인테리어 연출"],"sc":5.43},{"kw":"세라믹상판","s":5160,"p":66095,"ci":12.81,"mctr":2.97,"cpc":2500,"q":"B","cl":"소재","nd":["치수 맞춤","관리·내구"],"sc":7.05},{"kw":"카페테이블","s":5810,"p":1070075,"ci":184.18,"mctr":3.64,"cpc":4390,"q":"A","cl":"용도/공간","nd":["업소·행사"],"sc":5.08},{"kw":"4인용식탁","s":19990,"p":417181,"ci":20.87,"mctr":3.55,"cpc":1630,"q":"B","cl":"인원/사이즈","nd":["인원 수용"],"sc":6.03},{"kw":"식탁테이블","s":1960,"p":2904993,"ci":1482.14,"mctr":1.05,"cpc":1090,"q":"A","cl":"일반/기타","nd":["일반 탐색"],"sc":3.06},{"kw":"8인용식탁","s":2830,"p":29296,"ci":10.35,"mctr":4.15,"cpc":1790,"q":"B","cl":"인원/사이즈","nd":["인원 수용"],"sc":7.58},{"kw":"식탁상판","s":4900,"p":254009,"ci":51.84,"mctr":5.82,"cpc":970,"q":"B","cl":"일반/기타","nd":["치수 맞춤"],"sc":6.64},{"kw":"우드슬랩","s":4050,"p":68275,"ci":16.86,"mctr":6.49,"cpc":2120,"q":"B","cl":"소재","nd":["인테리어 연출"],"sc":7.51},{"kw":"이동식식탁","s":1410,"p":212162,"ci":150.47,"mctr":3.78,"cpc":3840,"q":"A","cl":"기능","nd":["좁은 공간","가변·다용도"],"sc":5.17},{"kw":"타원형식탁","s":2230,"p":91348,"ci":40.96,"mctr":3.58,"cpc":940,"q":"B","cl":"형태","nd":["형태 선호"],"sc":6.26},{"kw":"세라믹원형식탁","s":2220,"p":30681,"ci":13.82,"mctr":3.72,"cpc":870,"q":"B","cl":"소재","nd":["관리·내구","형태 선호"],"sc":7.18},{"kw":"우드슬랩테이블","s":2210,"p":60551,"ci":27.4,"mctr":6.77,"cpc":1800,"q":"B","cl":"소재","nd":["인테리어 연출"],"sc":7.25},{"kw":"낮은식탁","s":4920,"p":88085,"ci":17.9,"mctr":4.08,"cpc":640,"q":"B","cl":"인원/사이즈","nd":["좁은 공간"],"sc":7.06},{"kw":"불판테이블","s":1720,"p":34167,"ci":19.86,"mctr":2.87,"cpc":600,"q":"B","cl":"기능","nd":["조리·식사방식"],"sc":6.5},{"kw":"1인용식탁","s":1730,"p":169905,"ci":98.21,"mctr":3.62,"cpc":840,"q":"A","cl":"인원/사이즈","nd":["좁은 공간"],"sc":5.72},{"kw":"4인식탁","s":6690,"p":441219,"ci":65.95,"mctr":2.51,"cpc":1800,"q":"B","cl":"인원/사이즈","nd":["인원 수용"],"sc":5.22},{"kw":"확장형테이블","s":2210,"p":197541,"ci":89.39,"mctr":1.85,"cpc":500,"q":"A","cl":"형태","nd":["인원 수용","가변·다용도"],"sc":5.15},{"kw":"업소용테이블","s":3990,"p":414535,"ci":103.89,"mctr":4.87,"cpc":4110,"q":"A","cl":"용도/공간","nd":["업소·행사"],"sc":5.84},{"kw":"반원테이블","s":1700,"p":24886,"ci":14.64,"mctr":1.3,"cpc":530,"q":"B","cl":"형태","nd":["형태 선호"],"sc":6.15},{"kw":"접이식식탁4인용","s":1470,"p":68128,"ci":46.35,"mctr":3.91,"cpc":220,"q":"B","cl":"인원/사이즈","nd":["좁은 공간","인원 수용","가변·다용도"],"sc":6.19},{"kw":"1인식탁","s":1390,"p":179729,"ci":129.3,"mctr":2.53,"cpc":830,"q":"A","cl":"인원/사이즈","nd":["좁은 공간"],"sc":4.98},{"kw":"인덕션테이블","s":1280,"p":17162,"ci":13.41,"mctr":1.49,"cpc":640,"q":"B","cl":"기능","nd":["조리·식사방식"],"sc":6.03},{"kw":"수납식탁","s":1360,"p":298644,"ci":219.59,"mctr":0.74,"cpc":540,"q":"A","cl":"기능","nd":["수납"],"sc":3.57},{"kw":"접이식식탁2인용","s":1170,"p":55461,"ci":47.4,"mctr":4.01,"cpc":340,"q":"B","cl":"인원/사이즈","nd":["좁은 공간","가변·다용도"],"sc":6.03},{"kw":"식당테이블","s":2520,"p":394780,"ci":156.66,"mctr":4.3,"cpc":3010,"q":"A","cl":"용도/공간","nd":["업소·행사"],"sc":5.5},{"kw":"탁자","s":4480,"p":13689292,"ci":3055.65,"mctr":0.81,"cpc":610,"q":"A","cl":"일반/기타","nd":["일반 탐색"],"sc":3.44},{"kw":"세라믹식탁상판","s":980,"p":44717,"ci":45.63,"mctr":4.3,"cpc":810,"q":"C","cl":"소재","nd":["치수 맞춤","관리·내구"],"sc":5.99},{"kw":"스텐테이블","s":1040,"p":513672,"ci":493.92,"mctr":2.89,"cpc":1760,"q":"D","cl":"소재","nd":["관리·내구"],"sc":3.65},{"kw":"포세린상판","s":940,"p":22876,"ci":24.34,"mctr":4.09,"cpc":660,"q":"C","cl":"소재","nd":["치수 맞춤","관리·내구"],"sc":6.45},{"kw":"레진테이블","s":700,"p":12294,"ci":17.56,"mctr":4.54,"cpc":190,"q":"C","cl":"소재","nd":["인테리어 연출"],"sc":6.52},{"kw":"포세린세라믹식탁","s":4680,"p":71924,"ci":15.37,"mctr":4.28,"cpc":840,"q":"B","cl":"소재","nd":["관리·내구"],"sc":7.15},{"kw":"반타원형식탁","s":900,"p":6631,"ci":7.37,"mctr":4.79,"cpc":510,"q":"C","cl":"형태","nd":["형태 선호"],"sc":7.22},{"kw":"원형세라믹식탁","s":840,"p":29267,"ci":34.84,"mctr":1.53,"cpc":970,"q":"C","cl":"소재","nd":["관리·내구","형태 선호"],"sc":5.08},{"kw":"대형테이블","s":970,"p":596526,"ci":614.98,"mctr":2.97,"cpc":2490,"q":"D","cl":"인원/사이즈","nd":["인원 수용"],"sc":3.42},{"kw":"확장식탁","s":850,"p":37227,"ci":43.8,"mctr":2.53,"cpc":490,"q":"C","cl":"형태","nd":["인원 수용"],"sc":5.12},{"kw":"세라믹확장형식탁","s":880,"p":10351,"ci":11.76,"mctr":4.6,"cpc":430,"q":"C","cl":"소재","nd":["인원 수용","관리·내구","가변·다용도"],"sc":6.99},{"kw":"미니식탁","s":1270,"p":207391,"ci":163.3,"mctr":5.46,"cpc":570,"q":"A","cl":"인원/사이즈","nd":["좁은 공간"],"sc":5.62},{"kw":"lpm상판","s":1530,"p":28929,"ci":18.91,"mctr":2.84,"cpc":450,"q":"B","cl":"소재","nd":["치수 맞춤","관리·내구"],"sc":6.68},{"kw":"사각테이블","s":1170,"p":426128,"ci":364.21,"mctr":1.15,"cpc":1520,"q":"A","cl":"형태","nd":["형태 선호"],"sc":3.25},{"kw":"원형식탁1200","s":910,"p":7109,"ci":7.81,"mctr":2.87,"cpc":710,"q":"C","cl":"인원/사이즈","nd":["치수 맞춤","형태 선호"],"sc":6.53},{"kw":"거실식탁","s":2480,"p":982746,"ci":396.27,"mctr":1.64,"cpc":960,"q":"A","cl":"용도/공간","nd":["일반 탐색"],"sc":3.74},{"kw":"원목원형테이블","s":1130,"p":188201,"ci":166.55,"mctr":2.9,"cpc":1540,"q":"D","cl":"소재","nd":["인테리어 연출","형태 선호"],"sc":4.82},{"kw":"10인용식탁","s":540,"p":11246,"ci":20.83,"mctr":4.53,"cpc":940,"q":"C","cl":"인원/사이즈","nd":["인원 수용"],"sc":6.3},{"kw":"다이닝테이블","s":1980,"p":275240,"ci":139.01,"mctr":1.43,"cpc":810,"q":"A","cl":"일반/기타","nd":["일반 탐색"],"sc":4.35},{"kw":"6인용식탁","s":23290,"p":210964,"ci":9.06,"mctr":4.17,"cpc":1170,"q":"B","cl":"인원/사이즈","nd":["인원 수용"],"sc":6.97},{"kw":"깡통테이블","s":570,"p":15570,"ci":27.32,"mctr":5.4,"cpc":450,"q":"C","cl":"소재","nd":["가성비"],"sc":6.3},{"kw":"2000식탁","s":510,"p":16483,"ci":32.32,"mctr":1.63,"cpc":610,"q":"C","cl":"인원/사이즈","nd":["치수 맞춤"],"sc":4.85},{"kw":"고재테이블","s":860,"p":31238,"ci":36.32,"mctr":2.52,"cpc":690,"q":"C","cl":"소재","nd":["인테리어 연출"],"sc":5.41},{"kw":"1800테이블","s":690,"p":72658,"ci":105.3,"mctr":0.47,"cpc":830,"q":"D","cl":"인원/사이즈","nd":["치수 맞춤"],"sc":3.51},{"kw":"폭좁은식탁","s":410,"p":13141,"ci":32.05,"mctr":3.37,"cpc":380,"q":"C","cl":"인원/사이즈","nd":["좁은 공간"],"sc":5.5},{"kw":"2인테이블","s":920,"p":384726,"ci":418.18,"mctr":1.67,"cpc":1330,"q":"D","cl":"인원/사이즈","nd":["좁은 공간"],"sc":3.29},{"kw":"8인식탁","s":670,"p":37274,"ci":55.63,"mctr":3.48,"cpc":1470,"q":"C","cl":"인원/사이즈","nd":["인원 수용"],"sc":5.03},{"kw":"세라믹테이블","s":1230,"p":206029,"ci":167.5,"mctr":1.66,"cpc":1700,"q":"A","cl":"소재","nd":["관리·내구"],"sc":4.35},{"kw":"2인용식탁","s":12660,"p":287445,"ci":22.7,"mctr":5.14,"cpc":1110,"q":"B","cl":"인원/사이즈","nd":["좁은 공간"],"sc":6.71},{"kw":"타원형테이블","s":770,"p":138230,"ci":179.52,"mctr":1.81,"cpc":1030,"q":"D","cl":"형태","nd":["형태 선호"],"sc":3.95},{"kw":"6인용테이블","s":740,"p":186696,"ci":252.29,"mctr":0.75,"cpc":1880,"q":"D","cl":"인원/사이즈","nd":["인원 수용"],"sc":3.27},{"kw":"서랍형식탁","s":420,"p":22270,"ci":53.02,"mctr":0.15,"cpc":780,"q":"C","cl":"기능","nd":["수납"],"sc":4.14},{"kw":"우드테이블","s":1300,"p":642302,"ci":494.08,"mctr":2.45,"cpc":1130,"q":"A","cl":"일반/기타","nd":["일반 탐색"],"sc":3.57},{"kw":"대형식탁","s":820,"p":335196,"ci":408.78,"mctr":2.02,"cpc":1790,"q":"D","cl":"인원/사이즈","nd":["인원 수용"],"sc":3.23},{"kw":"6인테이블","s":790,"p":233890,"ci":296.06,"mctr":1.13,"cpc":2420,"q":"D","cl":"인원/사이즈","nd":["인원 수용"],"sc":3.11},{"kw":"원목식탁","s":10890,"p":870949,"ci":79.98,"mctr":4.5,"cpc":2610,"q":"A","cl":"소재","nd":["인테리어 연출"],"sc":5.63},{"kw":"원목탁자","s":1040,"p":1249722,"ci":1201.66,"mctr":5.72,"cpc":2100,"q":"D","cl":"소재","nd":["인테리어 연출"],"sc":3.97},{"kw":"반타원테이블","s":530,"p":10928,"ci":20.62,"mctr":0.93,"cpc":370,"q":"C","cl":"형태","nd":["형태 선호"],"sc":4.9},{"kw":"벽테이블","s":320,"p":208019,"ci":650.06,"mctr":1.57,"cpc":490,"q":"D","cl":"기능","nd":["좁은 공간"],"sc":2.66},{"kw":"2000테이블","s":240,"p":30655,"ci":127.73,"mctr":2.19,"cpc":650,"q":"D","cl":"인원/사이즈","nd":["치수 맞춤"],"sc":4.12},{"kw":"작은식탁","s":970,"p":92614,"ci":95.48,"mctr":1.83,"cpc":460,"q":"D","cl":"인원/사이즈","nd":["좁은 공간"],"sc":4.54},{"kw":"우드슬랩식탁","s":380,"p":56321,"ci":148.21,"mctr":6.63,"cpc":1470,"q":"D","cl":"소재","nd":["인테리어 연출"],"sc":5.11},{"kw":"4인식탁세트","s":4710,"p":208760,"ci":44.32,"mctr":5.29,"cpc":1050,"q":"B","cl":"인원/사이즈","nd":["인원 수용"],"sc":6.73},{"kw":"빈티지테이블","s":680,"p":527765,"ci":776.13,"mctr":2.74,"cpc":830,"q":"D","cl":"스타일","nd":["인테리어 연출"],"sc":2.77},{"kw":"원형테이블식탁","s":400,"p":544111,"ci":1360.28,"mctr":3.14,"cpc":790,"q":"D","cl":"형태","nd":["형태 선호"],"sc":2.47},{"kw":"1600식탁","s":1410,"p":31952,"ci":22.66,"mctr":0.92,"cpc":660,"q":"B","cl":"인원/사이즈","nd":["치수 맞춤"],"sc":5.51},{"kw":"2인식탁","s":4220,"p":295921,"ci":70.12,"mctr":4.05,"cpc":1080,"q":"B","cl":"인원/사이즈","nd":["좁은 공간"],"sc":5.83},{"kw":"모션식탁","s":480,"p":6356,"ci":13.24,"mctr":4.51,"cpc":840,"q":"C","cl":"기능","nd":["가변·다용도"],"sc":6.38},{"kw":"엔틱테이블","s":280,"p":417464,"ci":1490.94,"mctr":2.64,"cpc":830,"q":"D","cl":"스타일","nd":["인테리어 연출"],"sc":2.18},{"kw":"화이트식탁","s":640,"p":507068,"ci":792.29,"mctr":1.77,"cpc":820,"q":"D","cl":"스타일","nd":["인테리어 연출"],"sc":2.43},{"kw":"원형탁자","s":510,"p":1360115,"ci":2666.89,"mctr":2.64,"cpc":2280,"q":"D","cl":"형태","nd":["형태 선호"],"sc":1.94},{"kw":"식탁세트","s":6250,"p":843052,"ci":134.89,"mctr":4.64,"cpc":790,"q":"A","cl":"일반/기타","nd":["일반 탐색"],"sc":5.65},{"kw":"600테이블","s":270,"p":146802,"ci":543.71,"mctr":0.28,"cpc":670,"q":"D","cl":"인원/사이즈","nd":["치수 맞춤"],"sc":2.28},{"kw":"월넛식탁","s":620,"p":116041,"ci":187.16,"mctr":4.88,"cpc":1310,"q":"D","cl":"소재","nd":["인테리어 연출"],"sc":4.82},{"kw":"6인용식탁세트","s":4650,"p":102827,"ci":22.11,"mctr":6.66,"cpc":930,"q":"B","cl":"인원/사이즈","nd":["인원 수용"],"sc":7.32},{"kw":"4인용식탁세트","s":2490,"p":213780,"ci":85.86,"mctr":6.5,"cpc":840,"q":"A","cl":"인원/사이즈","nd":["인원 수용"],"sc":6.31},{"kw":"6인용타원형식탁","s":90,"p":9057,"ci":100.63,"mctr":3.99,"cpc":560,"q":"D","cl":"인원/사이즈","nd":["인원 수용","형태 선호"],"sc":5.27},{"kw":"디자인식탁","s":270,"p":408906,"ci":1514.47,"mctr":5.6,"cpc":760,"q":"D","cl":"스타일","nd":["인테리어 연출"],"sc":3.13},{"kw":"포세린식탁","s":10240,"p":82090,"ci":8.02,"mctr":2.83,"cpc":1470,"q":"B","cl":"소재","nd":["관리·내구"],"sc":6.87},{"kw":"미드센추리테이블","s":720,"p":24914,"ci":34.6,"mctr":3.55,"cpc":510,"q":"C","cl":"스타일","nd":["인테리어 연출"],"sc":5.73},{"kw":"라운드테이블","s":1500,"p":265643,"ci":177.1,"mctr":0.98,"cpc":830,"q":"A","cl":"형태","nd":["형태 선호"],"sc":4.02},{"kw":"인조대리석상판","s":2910,"p":15085,"ci":5.18,"mctr":2.66,"cpc":1490,"q":"B","cl":"소재","nd":["치수 맞춤","관리·내구"],"sc":7.51},{"kw":"회전테이블","s":390,"p":334366,"ci":857.35,"mctr":0.59,"cpc":810,"q":"D","cl":"기능","nd":["조리·식사방식","가변·다용도"],"sc":1.86},{"kw":"모션테이블","s":3660,"p":36231,"ci":9.9,"mctr":4.39,"cpc":860,"q":"B","cl":"기능","nd":["가변·다용도"],"sc":7.5},{"kw":"6인식탁","s":3530,"p":266928,"ci":75.62,"mctr":1.0,"cpc":2120,"q":"A","cl":"인원/사이즈","nd":["인원 수용"],"sc":4.64},{"kw":"조립식테이블","s":430,"p":101397,"ci":235.81,"mctr":1.55,"cpc":470,"q":"D","cl":"기능","nd":["가변·다용도"],"sc":3.37},{"kw":"원형테이블1200","s":280,"p":10053,"ci":35.9,"mctr":1.69,"cpc":940,"q":"C","cl":"인원/사이즈","nd":["치수 맞춤","형태 선호"],"sc":4.8},{"kw":"타원형세라믹식탁","s":290,"p":12713,"ci":43.84,"mctr":7.15,"cpc":650,"q":"C","cl":"소재","nd":["관리·내구","형태 선호"],"sc":6.09},{"kw":"식탁1200","s":1030,"p":69456,"ci":67.43,"mctr":0.63,"cpc":700,"q":"C","cl":"인원/사이즈","nd":["치수 맞춤"],"sc":4.3},{"kw":"6인용원형식탁","s":300,"p":36194,"ci":120.65,"mctr":4.23,"cpc":720,"q":"D","cl":"인원/사이즈","nd":["인원 수용","형태 선호"],"sc":4.87},{"kw":"고기식탁","s":290,"p":19195,"ci":66.19,"mctr":0.0,"cpc":310,"q":"C","cl":"일반/기타","nd":["조리·식사방식"],"sc":3.86},{"kw":"2인용식탁세트","s":2060,"p":118333,"ci":57.44,"mctr":3.8,"cpc":1180,"q":"B","cl":"인원/사이즈","nd":["좁은 공간"],"sc":6.03},{"kw":"롱테이블","s":230,"p":45294,"ci":196.93,"mctr":1.93,"cpc":190,"q":"D","cl":"형태","nd":["인원 수용"],"sc":3.53},{"kw":"식탁1600","s":720,"p":31952,"ci":44.38,"mctr":2.14,"cpc":680,"q":"C","cl":"인원/사이즈","nd":["치수 맞춤"],"sc":4.97},{"kw":"블랙세라믹식탁","s":210,"p":15086,"ci":71.84,"mctr":1.87,"cpc":670,"q":"C","cl":"소재","nd":["관리·내구","인테리어 연출"],"sc":4.38},{"kw":"원형식탁테이블","s":180,"p":585556,"ci":3253.09,"mctr":1.3,"cpc":1170,"q":"D","cl":"형태","nd":["형태 선호"],"sc":1.1},{"kw":"포세린테이블","s":270,"p":42055,"ci":155.76,"mctr":0.78,"cpc":1240,"q":"D","cl":"소재","nd":["관리·내구"],"sc":3.18},{"kw":"1200식탁","s":1710,"p":68491,"ci":40.05,"mctr":3.23,"cpc":640,"q":"B","cl":"인원/사이즈","nd":["치수 맞춤"],"sc":6.07},{"kw":"나무테이블","s":1080,"p":453994,"ci":420.36,"mctr":1.38,"cpc":1190,"q":"D","cl":"소재","nd":["인테리어 연출"],"sc":3.11},{"kw":"식탁추천","s":1130,"p":6155615,"ci":5447.45,"mctr":2.4,"cpc":1220,"q":"D","cl":"일반/기타","nd":["일반 탐색"],"sc":2.83},{"kw":"공방테이블","s":120,"p":31768,"ci":264.73,"mctr":6.19,"cpc":620,"q":"D","cl":"스타일","nd":["인테리어 연출"],"sc":4.99},{"kw":"세라믹식탁6인용","s":3750,"p":36529,"ci":9.74,"mctr":4.77,"cpc":860,"q":"B","cl":"소재","nd":["인원 수용","관리·내구"],"sc":7.62},{"kw":"화이트테이블","s":350,"p":860684,"ci":2459.1,"mctr":1.68,"cpc":1120,"q":"D","cl":"스타일","nd":["인테리어 연출"],"sc":1.57}],"cards":[{"name":"인원/사이즈","n":38,"s":114060,"share":27.3,"ci":61.7,"mctr":3.3,"cpc":840,"sc":5.38,"b":14,"lab":"들어갈 만함","tone":"ok","say":"검색의 27.3%를 먹는 큰 덩어리이고 경쟁도 평균 이하입니다. 주력 라인업으로 가져가세요.","splits":[],"ex":["6인용식탁","4인용식탁","2인용식탁","4인식탁","낮은식탁","4인식탁세트","6인용식탁세트"]},{"name":"소재","n":29,"s":100710,"share":24.1,"ci":34.8,"mctr":4.09,"cpc":1240,"sc":6.09,"b":10,"lab":"지금 파고들 곳","tone":"good","say":"축 전체로는 경쟁강도 34.8지만 <b>안에서 갈립니다.</b> 관리·내구 쪽 18.9, 인테리어 연출 쪽 107.4로 <b>5.7배</b> 차이입니다. 이 축에서 상품을 늘린다면 관리·내구 쪽을 고르세요.","splits":[{"name":"관리·내구","n":17,"s":67920,"share":67,"ci":18.9,"mctr":2.89,"ex":["세라믹식탁","포세린식탁","세라믹상판","포세린세라믹식탁"]},{"name":"인테리어 연출","n":12,"s":32430,"share":32,"ci":107.4,"mctr":4.52,"ex":["원목식탁","원목테이블","우드슬랩","우드슬랩테이블"]}],"ex":["세라믹식탁","원목식탁","포세린식탁","원목테이블","세라믹상판","포세린세라믹식탁","우드슬랩"]},{"name":"형태","n":16,"s":56870,"share":13.6,"ci":93.4,"mctr":1.68,"cpc":810,"sc":4.3,"b":4,"lab":"경쟁 빡빡함","tone":"warn","say":"축 전체로는 경쟁강도 93.4지만 <b>안에서 갈립니다.</b> 인원 수용 쪽 66.6, 형태 선호 쪽 137.2로 <b>2.1배</b> 차이입니다. 이 축에서 상품을 늘린다면 인원 수용 쪽을 고르세요.","splits":[{"name":"인원 수용","n":4,"s":19270,"share":34,"ci":66.6,"mctr":1.89,"ex":["확장형식탁","확장형테이블","확장식탁","롱테이블"]},{"name":"형태 선호","n":12,"s":37600,"share":66,"ci":137.2,"mctr":1.3,"ex":["원형식탁","원형테이블","타원형식탁","반원테이블"]}],"ex":["확장형식탁","원형식탁","원형테이블","타원형식탁","확장형테이블","반원테이블","라운드테이블"]},{"name":"기능","n":11,"s":27410,"share":6.6,"ci":53.0,"mctr":1.57,"cpc":780,"sc":5.17,"b":4,"lab":"들어갈 만함","tone":"ok","say":"경쟁은 평균보다 낮지만 검색 비중이 6.6%로 작습니다. 보완 라인입니다.","splits":[],"ex":["접이식식탁","모션테이블","불판테이블","이동식식탁","수납식탁","인덕션테이블","모션식탁"]},{"name":"용도/공간","n":4,"s":14800,"share":3.5,"ci":170.4,"mctr":3.97,"cpc":3560,"sc":5.29,"b":0,"lab":"경쟁 빡빡함","tone":"warn","say":"경쟁이 평균의 2.3배입니다. 이미 파는 상품이 있다면 방어하되, 여기서 종류를 늘리진 마세요.","splits":[],"ex":["카페테이블","업소용테이블","식당테이블","거실식탁"]},{"name":"스타일","n":7,"s":3060,"share":0.7,"ci":792.3,"mctr":2.74,"cpc":820,"sc":2.77,"b":0,"lab":"표본 부족","tone":"none","say":"키워드 7개, 검색 비중 0.7%로 표본이 너무 작습니다. 경쟁강도 792.3는 참고만 하세요.","splits":[],"ex":["미드센추리테이블","빈티지테이블","화이트식탁","화이트테이블","엔틱테이블","디자인식탁","공방테이블"]},{"name":"일반/기타","n":10,"s":100670,"share":24.1,"ci":316.5,"mctr":1.92,"cpc":1030,"sc":3.97,"b":1,"lab":"분류 불가","tone":"none","say":"'식탁' '의자'처럼 조건이 붙지 않은 검색입니다. 검색의 24.1%를 차지하지만 경쟁강도 316.5로 극심하고, 무엇을 원하는지 알 수 없어 소싱 판단에 쓸 수 없습니다.","splits":[],"ex":["식탁","테이블","식탁세트","식탁상판","탁자","다이닝테이블","식탁테이블"]}],"md":[{"kw":"세라믹식탁6인용","s":3750,"p":36529,"ci":9.74,"mctr":4.77,"cpc":860,"q":"B","cl":"소재","nd":["인원 수용","관리·내구"],"sc":7.62,"dual":false},{"kw":"8인용식탁","s":2830,"p":29296,"ci":10.35,"mctr":4.15,"cpc":1790,"q":"B","cl":"인원/사이즈","nd":["인원 수용"],"sc":7.58,"dual":false},{"kw":"우드슬랩","s":4050,"p":68275,"ci":16.86,"mctr":6.49,"cpc":2120,"q":"B","cl":"소재","nd":["인테리어 연출"],"sc":7.51,"dual":false},{"kw":"인조대리석상판","s":2910,"p":15085,"ci":5.18,"mctr":2.66,"cpc":1490,"q":"B","cl":"소재","nd":["치수 맞춤","관리·내구"],"sc":7.51,"dual":false},{"kw":"모션테이블","s":3660,"p":36231,"ci":9.9,"mctr":4.39,"cpc":860,"q":"B","cl":"기능","nd":["가변·다용도"],"sc":7.5,"dual":false},{"kw":"6인용식탁세트","s":4650,"p":102827,"ci":22.11,"mctr":6.66,"cpc":930,"q":"B","cl":"인원/사이즈","nd":["인원 수용"],"sc":7.32,"dual":false},{"kw":"우드슬랩테이블","s":2210,"p":60551,"ci":27.4,"mctr":6.77,"cpc":1800,"q":"B","cl":"소재","nd":["인테리어 연출"],"sc":7.25,"dual":false},{"kw":"세라믹원형식탁","s":2220,"p":30681,"ci":13.82,"mctr":3.72,"cpc":870,"q":"B","cl":"소재","nd":["관리·내구","형태 선호"],"sc":7.18,"dual":false},{"kw":"포세린세라믹식탁","s":4680,"p":71924,"ci":15.37,"mctr":4.28,"cpc":840,"q":"B","cl":"소재","nd":["관리·내구"],"sc":7.15,"dual":false},{"kw":"낮은식탁","s":4920,"p":88085,"ci":17.9,"mctr":4.08,"cpc":640,"q":"B","cl":"인원/사이즈","nd":["좁은 공간"],"sc":7.06,"dual":false},{"kw":"세라믹상판","s":5160,"p":66095,"ci":12.81,"mctr":2.97,"cpc":2500,"q":"B","cl":"소재","nd":["치수 맞춤","관리·내구"],"sc":7.05,"dual":false},{"kw":"6인용식탁","s":23290,"p":210964,"ci":9.06,"mctr":4.17,"cpc":1170,"q":"B","cl":"인원/사이즈","nd":["인원 수용"],"sc":6.97,"dual":false},{"kw":"포세린식탁","s":10240,"p":82090,"ci":8.02,"mctr":2.83,"cpc":1470,"q":"B","cl":"소재","nd":["관리·내구"],"sc":6.87,"dual":false},{"kw":"4인식탁세트","s":4710,"p":208760,"ci":44.32,"mctr":5.29,"cpc":1050,"q":"B","cl":"인원/사이즈","nd":["인원 수용"],"sc":6.73,"dual":false},{"kw":"2인용식탁","s":12660,"p":287445,"ci":22.7,"mctr":5.14,"cpc":1110,"q":"B","cl":"인원/사이즈","nd":["좁은 공간"],"sc":6.71,"dual":false},{"kw":"lpm상판","s":1530,"p":28929,"ci":18.91,"mctr":2.84,"cpc":450,"q":"B","cl":"소재","nd":["치수 맞춤","관리·내구"],"sc":6.68,"dual":false},{"kw":"식탁상판","s":4900,"p":254009,"ci":51.84,"mctr":5.82,"cpc":970,"q":"B","cl":"일반/기타","nd":["치수 맞춤"],"sc":6.64,"dual":false},{"kw":"불판테이블","s":1720,"p":34167,"ci":19.86,"mctr":2.87,"cpc":600,"q":"B","cl":"기능","nd":["조리·식사방식"],"sc":6.5,"dual":false},{"kw":"4인용식탁세트","s":2490,"p":213780,"ci":85.86,"mctr":6.5,"cpc":840,"q":"A","cl":"인원/사이즈","nd":["인원 수용"],"sc":6.31,"dual":false},{"kw":"타원형식탁","s":2230,"p":91348,"ci":40.96,"mctr":3.58,"cpc":940,"q":"B","cl":"형태","nd":["형태 선호"],"sc":6.26,"dual":false}],"lead":"검색 비중 5% 이상 축 가운데 <b>소재</b>가 가장 비어 있고(경쟁강도 34.8), <b>형태</b>가 가장 포화입니다(93.4). 다만 <b>소재</b>축은 안에서 5.7배로 갈립니다. 축 평균만 보면 잘못된 결론이 납니다.","sum":{"n":115,"s":417580,"medS":1170.0,"medC":75.62,"medP":138230.0,"mob":80.8,"cpc":860,"mctr":2.84,"qA":25,"qB":33,"qC":24,"qD":33,"top20":70.3},"org":[{"kw":"8인용식탁","s":2830,"p":29296,"ci":10.35,"mctr":4.15,"cpc":1790,"q":"B","cl":"인원/사이즈","nd":["인원 수용"],"sc":7.58,"dual":false},{"kw":"인조대리석상판","s":2910,"p":15085,"ci":5.18,"mctr":2.66,"cpc":1490,"q":"B","cl":"소재","nd":["치수 맞춤","관리·내구"],"sc":7.51,"dual":false},{"kw":"반타원형식탁","s":900,"p":6631,"ci":7.37,"mctr":4.79,"cpc":510,"q":"C","cl":"형태","nd":["형태 선호"],"sc":7.22,"dual":true},{"kw":"세라믹확장형식탁","s":880,"p":10351,"ci":11.76,"mctr":4.6,"cpc":430,"q":"C","cl":"소재","nd":["인원 수용","관리·내구","가변·다용도"],"sc":6.99,"dual":true},{"kw":"lpm상판","s":1530,"p":28929,"ci":18.91,"mctr":2.84,"cpc":450,"q":"B","cl":"소재","nd":["치수 맞춤","관리·내구"],"sc":6.68,"dual":true},{"kw":"원형식탁1200","s":910,"p":7109,"ci":7.81,"mctr":2.87,"cpc":710,"q":"C","cl":"인원/사이즈","nd":["치수 맞춤","형태 선호"],"sc":6.53,"dual":false},{"kw":"레진테이블","s":700,"p":12294,"ci":17.56,"mctr":4.54,"cpc":190,"q":"C","cl":"소재","nd":["인테리어 연출"],"sc":6.52,"dual":true},{"kw":"포세린상판","s":940,"p":22876,"ci":24.34,"mctr":4.09,"cpc":660,"q":"C","cl":"소재","nd":["치수 맞춤","관리·내구"],"sc":6.45,"dual":true},{"kw":"모션식탁","s":480,"p":6356,"ci":13.24,"mctr":4.51,"cpc":840,"q":"C","cl":"기능","nd":["가변·다용도"],"sc":6.38,"dual":false},{"kw":"10인용식탁","s":540,"p":11246,"ci":20.83,"mctr":4.53,"cpc":940,"q":"C","cl":"인원/사이즈","nd":["인원 수용"],"sc":6.3,"dual":false},{"kw":"깡통테이블","s":570,"p":15570,"ci":27.32,"mctr":5.4,"cpc":450,"q":"C","cl":"소재","nd":["가성비"],"sc":6.3,"dual":true},{"kw":"반원테이블","s":1700,"p":24886,"ci":14.64,"mctr":1.3,"cpc":530,"q":"B","cl":"형태","nd":["형태 선호"],"sc":6.15,"dual":false}],"ad":[{"kw":"레진테이블","s":700,"p":12294,"ci":17.56,"mctr":4.54,"cpc":190,"q":"C","cl":"소재","nd":["인테리어 연출"],"sc":6.52,"dual":true},{"kw":"접이식식탁4인용","s":1470,"p":68128,"ci":46.35,"mctr":3.91,"cpc":220,"q":"B","cl":"인원/사이즈","nd":["좁은 공간","인원 수용","가변·다용도"],"sc":6.19,"dual":false},{"kw":"깡통테이블","s":570,"p":15570,"ci":27.32,"mctr":5.4,"cpc":450,"q":"C","cl":"소재","nd":["가성비"],"sc":6.3,"dual":true},{"kw":"접이식식탁2인용","s":1170,"p":55461,"ci":47.4,"mctr":4.01,"cpc":340,"q":"B","cl":"인원/사이즈","nd":["좁은 공간","가변·다용도"],"sc":6.03,"dual":false},{"kw":"세라믹확장형식탁","s":880,"p":10351,"ci":11.76,"mctr":4.6,"cpc":430,"q":"C","cl":"소재","nd":["인원 수용","관리·내구","가변·다용도"],"sc":6.99,"dual":true},{"kw":"미니식탁","s":1270,"p":207391,"ci":163.3,"mctr":5.46,"cpc":570,"q":"A","cl":"인원/사이즈","nd":["좁은 공간"],"sc":5.62,"dual":false},{"kw":"반타원형식탁","s":900,"p":6631,"ci":7.37,"mctr":4.79,"cpc":510,"q":"C","cl":"형태","nd":["형태 선호"],"sc":7.22,"dual":true},{"kw":"미드센추리테이블","s":720,"p":24914,"ci":34.6,"mctr":3.55,"cpc":510,"q":"C","cl":"스타일","nd":["인테리어 연출"],"sc":5.73,"dual":false},{"kw":"낮은식탁","s":4920,"p":88085,"ci":17.9,"mctr":4.08,"cpc":640,"q":"B","cl":"인원/사이즈","nd":["좁은 공간"],"sc":7.06,"dual":false},{"kw":"lpm상판","s":1530,"p":28929,"ci":18.91,"mctr":2.84,"cpc":450,"q":"B","cl":"소재","nd":["치수 맞춤","관리·내구"],"sc":6.68,"dual":true},{"kw":"포세린상판","s":940,"p":22876,"ci":24.34,"mctr":4.09,"cpc":660,"q":"C","cl":"소재","nd":["치수 맞춤","관리·내구"],"sc":6.45,"dual":true},{"kw":"식탁세트","s":6250,"p":843052,"ci":134.89,"mctr":4.64,"cpc":790,"q":"A","cl":"일반/기타","nd":["일반 탐색"],"sc":5.65,"dual":false}],"gate":{"cpc":810,"ctr":2.84,"dual":6,"orgN":12,"adN":12}},"식탁세트":{"rows":[{"kw":"6인용식탁","s":23290,"p":210964,"ci":9.06,"mctr":4.17,"cpc":1170,"q":"B","cl":"인원/사이즈","nd":["인원 수용"],"sc":6.43},{"kw":"2인용식탁","s":12660,"p":287445,"ci":22.7,"mctr":5.14,"cpc":1110,"q":"B","cl":"인원/사이즈","nd":["좁은 공간"],"sc":6.2},{"kw":"4인용식탁","s":19990,"p":417181,"ci":20.87,"mctr":3.55,"cpc":1630,"q":"B","cl":"인원/사이즈","nd":["인원 수용"],"sc":5.34},{"kw":"세라믹식탁","s":30750,"p":219749,"ci":7.15,"mctr":2.1,"cpc":1920,"q":"B","cl":"소재","nd":["관리·내구"],"sc":5.63},{"kw":"식탁세트","s":6250,"p":843052,"ci":134.89,"mctr":4.64,"cpc":790,"q":"A","cl":"일반/기타","nd":["일반 탐색"],"sc":5.22},{"kw":"4인식탁세트","s":4710,"p":208760,"ci":44.32,"mctr":5.29,"cpc":1050,"q":"B","cl":"인원/사이즈","nd":["인원 수용"],"sc":6.41},{"kw":"6인용식탁세트","s":4650,"p":102827,"ci":22.11,"mctr":6.66,"cpc":930,"q":"B","cl":"인원/사이즈","nd":["인원 수용"],"sc":7.24},{"kw":"원목식탁","s":10890,"p":870949,"ci":79.98,"mctr":4.5,"cpc":2610,"q":"A","cl":"소재","nd":["인테리어 연출"],"sc":5.34},{"kw":"2인식탁","s":4220,"p":295921,"ci":70.12,"mctr":4.05,"cpc":1080,"q":"A","cl":"인원/사이즈","nd":["좁은 공간"],"sc":5.12},{"kw":"포세린식탁","s":10240,"p":82090,"ci":8.02,"mctr":2.83,"cpc":1470,"q":"B","cl":"소재","nd":["관리·내구"],"sc":6.71},{"kw":"4인식탁","s":6690,"p":441219,"ci":65.95,"mctr":2.51,"cpc":1800,"q":"A","cl":"인원/사이즈","nd":["인원 수용"],"sc":4.61},{"kw":"낮은식탁","s":4920,"p":88085,"ci":17.9,"mctr":4.08,"cpc":640,"q":"B","cl":"인원/사이즈","nd":["좁은 공간"],"sc":6.9},{"kw":"4인용식탁세트","s":2490,"p":213780,"ci":85.86,"mctr":6.5,"cpc":840,"q":"A","cl":"인원/사이즈","nd":["인원 수용"],"sc":5.66},{"kw":"2인용식탁세트","s":2060,"p":118333,"ci":57.44,"mctr":3.8,"cpc":1180,"q":"B","cl":"인원/사이즈","nd":["좁은 공간"],"sc":5.59},{"kw":"6인식탁","s":3530,"p":266928,"ci":75.62,"mctr":1.0,"cpc":2120,"q":"A","cl":"인원/사이즈","nd":["인원 수용"],"sc":4.2},{"kw":"세라믹식탁4인용","s":3340,"p":76432,"ci":22.88,"mctr":3.65,"cpc":840,"q":"B","cl":"소재","nd":["인원 수용","관리·내구"],"sc":6.49},{"kw":"세라믹식탁6인용","s":3750,"p":36529,"ci":9.74,"mctr":4.77,"cpc":860,"q":"B","cl":"소재","nd":["인원 수용","관리·내구"],"sc":7.73},{"kw":"식탁","s":57100,"p":6151611,"ci":107.73,"mctr":2.79,"cpc":1220,"q":"A","cl":"일반/기타","nd":["일반 탐색"],"sc":4.8},{"kw":"대리석식탁","s":3300,"p":136380,"ci":41.33,"mctr":3.12,"cpc":870,"q":"B","cl":"소재","nd":["관리·내구"],"sc":5.49},{"kw":"원형식탁세트","s":1640,"p":148404,"ci":90.49,"mctr":3.72,"cpc":1750,"q":"A","cl":"형태","nd":["형태 선호"],"sc":4.96},{"kw":"낮은식탁세트","s":1290,"p":18803,"ci":14.58,"mctr":3.72,"cpc":510,"q":"B","cl":"인원/사이즈","nd":["좁은 공간"],"sc":6.72},{"kw":"포세린세라믹식탁","s":4680,"p":71924,"ci":15.37,"mctr":4.28,"cpc":840,"q":"B","cl":"소재","nd":["관리·내구"],"sc":7.11},{"kw":"6인용원목식탁","s":2930,"p":57418,"ci":19.6,"mctr":6.82,"cpc":1110,"q":"B","cl":"소재","nd":["인원 수용","인테리어 연출"],"sc":7.51},{"kw":"6인식탁세트","s":920,"p":126744,"ci":137.77,"mctr":1.64,"cpc":810,"q":"D","cl":"인원/사이즈","nd":["인원 수용"],"sc":3.93},{"kw":"식탁1200","s":1030,"p":69456,"ci":67.43,"mctr":0.63,"cpc":700,"q":"D","cl":"인원/사이즈","nd":["치수 맞춤"],"sc":4.45},{"kw":"2인식탁의자세트","s":1790,"p":104519,"ci":58.39,"mctr":4.48,"cpc":570,"q":"A","cl":"인원/사이즈","nd":["좁은 공간"],"sc":5.99},{"kw":"4인용원목식탁","s":2270,"p":120133,"ci":52.92,"mctr":4.88,"cpc":910,"q":"B","cl":"소재","nd":["인원 수용","인테리어 연출"],"sc":6.09},{"kw":"2인식탁세트","s":900,"p":128735,"ci":143.04,"mctr":4.71,"cpc":960,"q":"D","cl":"인원/사이즈","nd":["좁은 공간"],"sc":4.85},{"kw":"1200식탁","s":1710,"p":68491,"ci":40.05,"mctr":3.23,"cpc":640,"q":"B","cl":"인원/사이즈","nd":["치수 맞춤"],"sc":5.93},{"kw":"식탁의자세트","s":1600,"p":617094,"ci":385.68,"mctr":2.81,"cpc":1320,"q":"A","cl":"일반/기타","nd":["일반 탐색"],"sc":3.51},{"kw":"식탁4인용","s":1570,"p":426452,"ci":271.63,"mctr":3.33,"cpc":780,"q":"A","cl":"인원/사이즈","nd":["인원 수용"],"sc":3.71},{"kw":"1600식탁","s":1410,"p":31952,"ci":22.66,"mctr":0.92,"cpc":660,"q":"B","cl":"인원/사이즈","nd":["치수 맞춤"],"sc":5.51},{"kw":"포세린식탁1800","s":1060,"p":16960,"ci":16.0,"mctr":2.4,"cpc":470,"q":"C","cl":"소재","nd":["치수 맞춤","관리·내구"],"sc":6.1},{"kw":"리빙다이닝소파","s":2750,"p":3279,"ci":1.19,"mctr":2.57,"cpc":460,"q":"B","cl":"일반/기타","nd":["일반 탐색"],"sc":7.37},{"kw":"포세린식탁1600","s":920,"p":6505,"ci":7.07,"mctr":4.04,"cpc":640,"q":"C","cl":"소재","nd":["치수 맞춤","관리·내구"],"sc":6.73},{"kw":"식탁6인용","s":950,"p":210938,"ci":222.04,"mctr":4.17,"cpc":720,"q":"D","cl":"인원/사이즈","nd":["인원 수용"],"sc":4.43},{"kw":"1800식탁","s":860,"p":49895,"ci":58.02,"mctr":2.7,"cpc":800,"q":"C","cl":"인원/사이즈","nd":["치수 맞춤"],"sc":5.02},{"kw":"쇼파식탁","s":1160,"p":293022,"ci":252.61,"mctr":0.8,"cpc":1210,"q":"D","cl":"일반/기타","nd":["일반 탐색"],"sc":2.85},{"kw":"고급식탁","s":850,"p":260074,"ci":305.97,"mctr":8.06,"cpc":1230,"q":"D","cl":"스타일","nd":["인테리어 연출"],"sc":4.27},{"kw":"세라믹식탁1200","s":590,"p":8837,"ci":14.98,"mctr":1.65,"cpc":440,"q":"C","cl":"소재","nd":["치수 맞춤","관리·내구"],"sc":5.0},{"kw":"엔틱식탁","s":840,"p":255226,"ci":303.84,"mctr":6.23,"cpc":870,"q":"D","cl":"스타일","nd":["인테리어 연출"],"sc":4.12},{"kw":"4인용세라믹식탁","s":1480,"p":76434,"ci":51.64,"mctr":1.01,"cpc":920,"q":"B","cl":"소재","nd":["인원 수용","관리·내구"],"sc":4.8},{"kw":"쇼파식탁세트","s":450,"p":37745,"ci":83.88,"mctr":1.96,"cpc":960,"q":"D","cl":"일반/기타","nd":["일반 탐색"],"sc":4.07},{"kw":"티테이블세트","s":480,"p":115492,"ci":240.61,"mctr":4.78,"cpc":650,"q":"D","cl":"일반/기타","nd":["일반 탐색"],"sc":4.34},{"kw":"6인용세라믹식탁","s":900,"p":36529,"ci":40.59,"mctr":1.83,"cpc":1120,"q":"C","cl":"소재","nd":["인원 수용","관리·내구"],"sc":5.1},{"kw":"식탁1600","s":720,"p":31952,"ci":44.38,"mctr":2.14,"cpc":680,"q":"C","cl":"인원/사이즈","nd":["치수 맞춤"],"sc":4.95},{"kw":"4인용대리석식탁","s":650,"p":19499,"ci":30.0,"mctr":4.28,"cpc":560,"q":"C","cl":"소재","nd":["인원 수용","관리·내구"],"sc":5.84},{"kw":"주방식탁","s":1090,"p":4005324,"ci":3674.61,"mctr":1.34,"cpc":550,"q":"D","cl":"용도/공간","nd":["일반 탐색"],"sc":2.41},{"kw":"소파식탁","s":900,"p":283282,"ci":314.76,"mctr":0.86,"cpc":1480,"q":"D","cl":"일반/기타","nd":["일반 탐색"],"sc":2.56},{"kw":"호두나무식탁","s":730,"p":21407,"ci":29.32,"mctr":4.48,"cpc":520,"q":"C","cl":"소재","nd":["인테리어 연출"],"sc":6.04},{"kw":"1400식탁","s":930,"p":46226,"ci":49.71,"mctr":1.59,"cpc":650,"q":"C","cl":"인원/사이즈","nd":["치수 맞춤"],"sc":5.07},{"kw":"포쉐린식탁","s":1190,"p":390,"ci":0.33,"mctr":3.21,"cpc":620,"q":"B","cl":"소재","nd":["관리·내구"],"sc":6.93},{"kw":"6인용원목식탁세트","s":460,"p":34106,"ci":74.14,"mctr":4.83,"cpc":660,"q":"D","cl":"소재","nd":["인원 수용","인테리어 연출"],"sc":5.37},{"kw":"화산석식탁","s":480,"p":2165,"ci":4.51,"mctr":2.6,"cpc":350,"q":"C","cl":"소재","nd":["관리·내구"],"sc":5.37},{"kw":"세라믹식탁세트","s":600,"p":119629,"ci":199.38,"mctr":1.61,"cpc":1070,"q":"D","cl":"소재","nd":["관리·내구"],"sc":3.17},{"kw":"원목식탁세트","s":690,"p":184025,"ci":266.7,"mctr":3.68,"cpc":780,"q":"D","cl":"소재","nd":["인테리어 연출"],"sc":3.56},{"kw":"카페테이블세트","s":380,"p":245192,"ci":645.24,"mctr":7.94,"cpc":1860,"q":"D","cl":"용도/공간","nd":["업소·행사"],"sc":3.56},{"kw":"리빙다이닝","s":880,"p":21567,"ci":24.51,"mctr":1.02,"cpc":280,"q":"C","cl":"일반/기타","nd":["일반 탐색"],"sc":5.07},{"kw":"1인용식탁세트","s":330,"p":16517,"ci":50.05,"mctr":2.97,"cpc":680,"q":"C","cl":"인원/사이즈","nd":["좁은 공간"],"sc":4.88},{"kw":"식탁1300","s":130,"p":6848,"ci":52.68,"mctr":4.68,"cpc":430,"q":"C","cl":"일반/기타","nd":["일반 탐색"],"sc":5.61},{"kw":"낮은의자","s":2900,"p":369352,"ci":127.36,"mctr":1.09,"cpc":1320,"q":"A","cl":"인원/사이즈","nd":["좁은 공간"],"sc":3.78},{"kw":"나무식탁","s":820,"p":249142,"ci":303.83,"mctr":3.85,"cpc":960,"q":"D","cl":"소재","nd":["인테리어 연출"],"sc":3.51},{"kw":"4인세라믹식탁세트","s":100,"p":57905,"ci":579.05,"mctr":3.61,"cpc":500,"q":"D","cl":"소재","nd":["인원 수용","관리·내구"],"sc":3.9},{"kw":"양면세라믹식탁","s":80,"p":9469,"ci":118.36,"mctr":5.07,"cpc":240,"q":"D","cl":"소재","nd":["관리·내구"],"sc":5.54},{"kw":"의자","s":73900,"p":11050923,"ci":149.54,"mctr":0.85,"cpc":1930,"q":"A","cl":"일반/기타","nd":["일반 탐색"],"sc":4.15},{"kw":"확장형식탁","s":15980,"p":166459,"ci":10.42,"mctr":1.54,"cpc":640,"q":"B","cl":"형태","nd":["인원 수용","가변·다용도"],"sc":5.56},{"kw":"수입가구","s":2520,"p":113903,"ci":45.2,"mctr":8.42,"cpc":2560,"q":"B","cl":"일반/기타","nd":["인테리어 연출"],"sc":6.73},{"kw":"카페테이블의자","s":290,"p":353346,"ci":1218.43,"mctr":6.93,"cpc":1750,"q":"D","cl":"용도/공간","nd":["업소·행사"],"sc":2.95},{"kw":"식탁세트1200","s":60,"p":16081,"ci":268.02,"mctr":1.58,"cpc":70,"q":"D","cl":"인원/사이즈","nd":["치수 맞춤"],"sc":4.07},{"kw":"4인용원목식탁세트","s":230,"p":70078,"ci":304.69,"mctr":5.67,"cpc":570,"q":"D","cl":"소재","nd":["인원 수용","인테리어 연출"],"sc":4.63},{"kw":"8인용식탁","s":2830,"p":29296,"ci":10.35,"mctr":4.15,"cpc":1790,"q":"B","cl":"인원/사이즈","nd":["인원 수용"],"sc":7.37},{"kw":"월넛식탁","s":620,"p":116041,"ci":187.16,"mctr":4.88,"cpc":1310,"q":"D","cl":"소재","nd":["인테리어 연출"],"sc":4.6},{"kw":"테이블세트","s":360,"p":1435346,"ci":3987.07,"mctr":2.05,"cpc":1410,"q":"D","cl":"일반/기타","nd":["일반 탐색"],"sc":1.27},{"kw":"4인용식탁사이즈","s":620,"p":52972,"ci":85.44,"mctr":1.25,"cpc":650,"q":"D","cl":"인원/사이즈","nd":["인원 수용","치수 맞춤"],"sc":4.05},{"kw":"접이식식탁세트","s":100,"p":130717,"ci":1307.17,"mctr":2.25,"cpc":380,"q":"D","cl":"기능","nd":["좁은 공간","가변·다용도"],"sc":2.54},{"kw":"2인용테이블세트","s":70,"p":144404,"ci":2062.91,"mctr":4.67,"cpc":1120,"q":"D","cl":"인원/사이즈","nd":["좁은 공간"],"sc":3.15},{"kw":"6인용식탁사이즈","s":710,"p":22685,"ci":31.95,"mctr":0.88,"cpc":740,"q":"C","cl":"인원/사이즈","nd":["인원 수용","치수 맞춤"],"sc":4.59},{"kw":"타원형식탁","s":2230,"p":91348,"ci":40.96,"mctr":3.58,"cpc":940,"q":"B","cl":"형태","nd":["형태 선호"],"sc":5.76},{"kw":"원형식탁","s":14720,"p":729299,"ci":49.54,"mctr":0.62,"cpc":2050,"q":"B","cl":"형태","nd":["형태 선호"],"sc":4.07},{"kw":"포세린","s":2550,"p":137304,"ci":53.84,"mctr":0.63,"cpc":950,"q":"B","cl":"소재","nd":["관리·내구"],"sc":4.35},{"kw":"4인식탁사이즈","s":600,"p":52972,"ci":88.29,"mctr":3.66,"cpc":640,"q":"D","cl":"인원/사이즈","nd":["인원 수용","치수 맞춤"],"sc":4.71},{"kw":"세라믹","s":9810,"p":3478576,"ci":354.59,"mctr":0.72,"cpc":4890,"q":"A","cl":"소재","nd":["관리·내구"],"sc":3.76}],"cards":[{"name":"인원/사이즈","n":31,"s":111410,"share":28.3,"ci":58.0,"mctr":3.55,"cpc":800,"sc":5.02,"b":11,"lab":"들어갈 만함","tone":"ok","say":"검색의 28.3%를 먹는 큰 덩어리이고 경쟁도 평균 이하입니다. 주력 라인업으로 가져가세요.","splits":[],"ex":["6인용식탁","4인용식탁","2인용식탁","4인식탁","낮은식탁","4인식탁세트","6인용식탁세트"]},{"name":"소재","n":28,"s":96110,"share":24.4,"ci":41.0,"mctr":3.67,"cpc":850,"sc":5.43,"b":11,"lab":"들어갈 만함","tone":"ok","say":"축 전체로는 경쟁강도 41.0지만 <b>안에서 갈립니다.</b> 관리·내구 쪽 22.9, 인테리어 연출 쪽 80.0로 <b>3.5배</b> 차이입니다. 이 축에서 상품을 늘린다면 관리·내구 쪽을 고르세요.","splits":[{"name":"관리·내구","n":19,"s":76470,"share":80,"ci":22.9,"mctr":2.83,"ex":["세라믹식탁","포세린식탁","세라믹","포세린세라믹식탁"]},{"name":"인테리어 연출","n":9,"s":19640,"share":20,"ci":80.0,"mctr":4.83,"ex":["원목식탁","6인용원목식탁","4인용원목식탁","나무식탁"]}],"ex":["세라믹식탁","원목식탁","포세린식탁","세라믹","포세린세라믹식탁","세라믹식탁6인용","세라믹식탁4인용"]},{"name":"형태","n":4,"s":34570,"share":8.8,"ci":45.2,"mctr":2.56,"cpc":1345,"sc":5.26,"b":3,"lab":"들어갈 만함","tone":"ok","say":"경쟁은 평균보다 낮지만 검색 비중이 8.8%로 작습니다. 보완 라인입니다.","splits":[],"ex":["확장형식탁","원형식탁","타원형식탁","원형식탁세트"]},{"name":"용도/공간","n":3,"s":1760,"share":0.4,"ci":1218.4,"mctr":6.93,"cpc":1750,"sc":2.95,"b":0,"lab":"표본 부족","tone":"none","say":"키워드 3개, 검색 비중 0.4%로 표본이 너무 작습니다. 경쟁강도 1218.4는 참고만 하세요. 광고 반응은 평균의 1.9배로 좋습니다.","splits":[],"ex":["주방식탁","카페테이블세트","카페테이블의자"]},{"name":"스타일","n":2,"s":1690,"share":0.4,"ci":304.9,"mctr":7.15,"cpc":1050,"sc":4.2,"b":0,"lab":"표본 부족","tone":"none","say":"키워드 2개, 검색 비중 0.4%로 표본이 너무 작습니다. 경쟁강도 304.9는 참고만 하세요. 광고 반응은 평균의 2.0배로 좋습니다.","splits":[],"ex":["고급식탁","엔틱식탁"]},{"name":"기능","n":1,"s":100,"share":0.0,"ci":1307.2,"mctr":2.25,"cpc":380,"sc":2.54,"b":0,"lab":"표본 부족","tone":"none","say":"키워드 1개, 검색 비중 0.0%로 표본이 너무 작습니다. 경쟁강도 1307.2는 참고만 하세요.","splits":[],"ex":["접이식식탁세트"]},{"name":"일반/기타","n":13,"s":148480,"share":37.7,"ci":134.9,"mctr":2.57,"cpc":1210,"sc":4.34,"b":2,"lab":"분류 불가","tone":"none","say":"'식탁' '의자'처럼 조건이 붙지 않은 검색입니다. 검색의 37.7%를 차지하지만 경쟁강도 134.9로 극심하고, 무엇을 원하는지 알 수 없어 소싱 판단에 쓸 수 없습니다.","splits":[],"ex":["의자","식탁","식탁세트","리빙다이닝소파","수입가구","식탁의자세트","쇼파식탁"]}],"md":[{"kw":"세라믹식탁6인용","s":3750,"p":36529,"ci":9.74,"mctr":4.77,"cpc":860,"q":"B","cl":"소재","nd":["인원 수용","관리·내구"],"sc":7.73,"dual":false},{"kw":"6인용원목식탁","s":2930,"p":57418,"ci":19.6,"mctr":6.82,"cpc":1110,"q":"B","cl":"소재","nd":["인원 수용","인테리어 연출"],"sc":7.51,"dual":false},{"kw":"리빙다이닝소파","s":2750,"p":3279,"ci":1.19,"mctr":2.57,"cpc":460,"q":"B","cl":"일반/기타","nd":["일반 탐색"],"sc":7.37,"dual":false},{"kw":"8인용식탁","s":2830,"p":29296,"ci":10.35,"mctr":4.15,"cpc":1790,"q":"B","cl":"인원/사이즈","nd":["인원 수용"],"sc":7.37,"dual":false},{"kw":"6인용식탁세트","s":4650,"p":102827,"ci":22.11,"mctr":6.66,"cpc":930,"q":"B","cl":"인원/사이즈","nd":["인원 수용"],"sc":7.24,"dual":false},{"kw":"포세린세라믹식탁","s":4680,"p":71924,"ci":15.37,"mctr":4.28,"cpc":840,"q":"B","cl":"소재","nd":["관리·내구"],"sc":7.11,"dual":false},{"kw":"포쉐린식탁","s":1190,"p":390,"ci":0.33,"mctr":3.21,"cpc":620,"q":"B","cl":"소재","nd":["관리·내구"],"sc":6.93,"dual":false},{"kw":"낮은식탁","s":4920,"p":88085,"ci":17.9,"mctr":4.08,"cpc":640,"q":"B","cl":"인원/사이즈","nd":["좁은 공간"],"sc":6.9,"dual":false},{"kw":"수입가구","s":2520,"p":113903,"ci":45.2,"mctr":8.42,"cpc":2560,"q":"B","cl":"일반/기타","nd":["인테리어 연출"],"sc":6.73,"dual":false},{"kw":"낮은식탁세트","s":1290,"p":18803,"ci":14.58,"mctr":3.72,"cpc":510,"q":"B","cl":"인원/사이즈","nd":["좁은 공간"],"sc":6.72,"dual":false},{"kw":"포세린식탁","s":10240,"p":82090,"ci":8.02,"mctr":2.83,"cpc":1470,"q":"B","cl":"소재","nd":["관리·내구"],"sc":6.71,"dual":false},{"kw":"세라믹식탁4인용","s":3340,"p":76432,"ci":22.88,"mctr":3.65,"cpc":840,"q":"B","cl":"소재","nd":["인원 수용","관리·내구"],"sc":6.49,"dual":false},{"kw":"6인용식탁","s":23290,"p":210964,"ci":9.06,"mctr":4.17,"cpc":1170,"q":"B","cl":"인원/사이즈","nd":["인원 수용"],"sc":6.43,"dual":false},{"kw":"4인식탁세트","s":4710,"p":208760,"ci":44.32,"mctr":5.29,"cpc":1050,"q":"B","cl":"인원/사이즈","nd":["인원 수용"],"sc":6.41,"dual":false},{"kw":"2인용식탁","s":12660,"p":287445,"ci":22.7,"mctr":5.14,"cpc":1110,"q":"B","cl":"인원/사이즈","nd":["좁은 공간"],"sc":6.2,"dual":false},{"kw":"포세린식탁1800","s":1060,"p":16960,"ci":16.0,"mctr":2.4,"cpc":470,"q":"C","cl":"소재","nd":["치수 맞춤","관리·내구"],"sc":6.1,"dual":false},{"kw":"4인용원목식탁","s":2270,"p":120133,"ci":52.92,"mctr":4.88,"cpc":910,"q":"B","cl":"소재","nd":["인원 수용","인테리어 연출"],"sc":6.09,"dual":false},{"kw":"2인식탁의자세트","s":1790,"p":104519,"ci":58.39,"mctr":4.48,"cpc":570,"q":"A","cl":"인원/사이즈","nd":["좁은 공간"],"sc":5.99,"dual":false},{"kw":"1200식탁","s":1710,"p":68491,"ci":40.05,"mctr":3.23,"cpc":640,"q":"B","cl":"인원/사이즈","nd":["치수 맞춤"],"sc":5.93,"dual":false},{"kw":"타원형식탁","s":2230,"p":91348,"ci":40.96,"mctr":3.58,"cpc":940,"q":"B","cl":"형태","nd":["형태 선호"],"sc":5.76,"dual":false}],"lead":"검색 비중 5% 이상 축 가운데 <b>소재</b>가 가장 비어 있고(경쟁강도 41.0), <b>인원/사이즈</b>가 가장 포화입니다(58.0). 다만 <b>소재</b>축은 안에서 3.5배로 갈립니다. 축 평균만 보면 잘못된 결론이 납니다.","sum":{"n":82,"s":394120,"medS":1175.0,"medC":58.205,"medP":115766.5,"mob":80.2,"cpc":865,"mctr":3.565,"qA":14,"qB":27,"qC":14,"qD":27,"top20":81.9},"org":[{"kw":"8인용식탁","s":2830,"p":29296,"ci":10.35,"mctr":4.15,"cpc":1790,"q":"B","cl":"인원/사이즈","nd":["인원 수용"],"sc":7.37,"dual":false},{"kw":"리빙다이닝소파","s":2750,"p":3279,"ci":1.19,"mctr":2.57,"cpc":460,"q":"B","cl":"일반/기타","nd":["일반 탐색"],"sc":7.37,"dual":false},{"kw":"포쉐린식탁","s":1190,"p":390,"ci":0.33,"mctr":3.21,"cpc":620,"q":"B","cl":"소재","nd":["관리·내구"],"sc":6.93,"dual":false},{"kw":"포세린식탁1600","s":920,"p":6505,"ci":7.07,"mctr":4.04,"cpc":640,"q":"C","cl":"소재","nd":["치수 맞춤","관리·내구"],"sc":6.73,"dual":true},{"kw":"낮은식탁세트","s":1290,"p":18803,"ci":14.58,"mctr":3.72,"cpc":510,"q":"B","cl":"인원/사이즈","nd":["좁은 공간"],"sc":6.72,"dual":true},{"kw":"포세린식탁1800","s":1060,"p":16960,"ci":16.0,"mctr":2.4,"cpc":470,"q":"C","cl":"소재","nd":["치수 맞춤","관리·내구"],"sc":6.1,"dual":false},{"kw":"호두나무식탁","s":730,"p":21407,"ci":29.32,"mctr":4.48,"cpc":520,"q":"C","cl":"소재","nd":["인테리어 연출"],"sc":6.04,"dual":true},{"kw":"4인용대리석식탁","s":650,"p":19499,"ci":30.0,"mctr":4.28,"cpc":560,"q":"C","cl":"소재","nd":["인원 수용","관리·내구"],"sc":5.84,"dual":true},{"kw":"화산석식탁","s":480,"p":2165,"ci":4.51,"mctr":2.6,"cpc":350,"q":"C","cl":"소재","nd":["관리·내구"],"sc":5.37,"dual":false},{"kw":"리빙다이닝","s":880,"p":21567,"ci":24.51,"mctr":1.02,"cpc":280,"q":"C","cl":"일반/기타","nd":["일반 탐색"],"sc":5.07,"dual":false},{"kw":"세라믹식탁1200","s":590,"p":8837,"ci":14.98,"mctr":1.65,"cpc":440,"q":"C","cl":"소재","nd":["치수 맞춤","관리·내구"],"sc":5.0,"dual":false},{"kw":"1인용식탁세트","s":330,"p":16517,"ci":50.05,"mctr":2.97,"cpc":680,"q":"C","cl":"인원/사이즈","nd":["좁은 공간"],"sc":4.88,"dual":false}],"ad":[{"kw":"호두나무식탁","s":730,"p":21407,"ci":29.32,"mctr":4.48,"cpc":520,"q":"C","cl":"소재","nd":["인테리어 연출"],"sc":6.04,"dual":true},{"kw":"2인식탁의자세트","s":1790,"p":104519,"ci":58.39,"mctr":4.48,"cpc":570,"q":"A","cl":"인원/사이즈","nd":["좁은 공간"],"sc":5.99,"dual":false},{"kw":"4인용대리석식탁","s":650,"p":19499,"ci":30.0,"mctr":4.28,"cpc":560,"q":"C","cl":"소재","nd":["인원 수용","관리·내구"],"sc":5.84,"dual":true},{"kw":"낮은식탁세트","s":1290,"p":18803,"ci":14.58,"mctr":3.72,"cpc":510,"q":"B","cl":"인원/사이즈","nd":["좁은 공간"],"sc":6.72,"dual":true},{"kw":"낮은식탁","s":4920,"p":88085,"ci":17.9,"mctr":4.08,"cpc":640,"q":"B","cl":"인원/사이즈","nd":["좁은 공간"],"sc":6.9,"dual":false},{"kw":"포세린식탁1600","s":920,"p":6505,"ci":7.07,"mctr":4.04,"cpc":640,"q":"C","cl":"소재","nd":["치수 맞춤","관리·내구"],"sc":6.73,"dual":true},{"kw":"식탁6인용","s":950,"p":210938,"ci":222.04,"mctr":4.17,"cpc":720,"q":"D","cl":"인원/사이즈","nd":["인원 수용"],"sc":4.43,"dual":false},{"kw":"4인식탁사이즈","s":600,"p":52972,"ci":88.29,"mctr":3.66,"cpc":640,"q":"D","cl":"인원/사이즈","nd":["인원 수용","치수 맞춤"],"sc":4.71,"dual":false},{"kw":"원목식탁세트","s":690,"p":184025,"ci":266.7,"mctr":3.68,"cpc":780,"q":"D","cl":"소재","nd":["인테리어 연출"],"sc":3.56,"dual":false}],"gate":{"cpc":780,"ctr":3.56,"dual":4,"orgN":12,"adN":9}}};
+const INSIGHT = {
+"간이/접이식의자": {
+  verdict: "신규 상품을 넣을 카테고리가 아닙니다. 경쟁강도 중앙값 303으로 식탁류의 4~5배이고 광고 반응도 최저입니다. 뚫을 자리는 두 곳뿐입니다.",
+  warn: true,
+  md: [
+    ["<strong>아코디언의자가 유일한 진짜 공백입니다.</strong> 같은 카테고리 본체인 접이식의자가 경쟁강도 66.5인데 아코디언의자는 4.0입니다. 형태를 콕 집어 찾는 수요인데 상품이 안 채워져 있습니다.","검색 3,680 · 경쟁강도 4.0 · 기회점수 8.6"],
+    ["<strong>업소·행사 니즈가 유일하게 살아 있는 축입니다.</strong> 교회·강당·행사용·포장마차는 적층 보관과 내구성이 핵심이라 소싱 사양이 개인용과 다릅니다. 건당 수량이 커서 경쟁강도가 높아도 수익이 납니다.","니즈 중 기회점수 최상위"],
+    ["<strong>가성비 축은 들어가면 집니다.</strong> 플라스틱·간이 계열 키워드가 몰려 있는데 다이소 관련 검색만 34,320회입니다. 상품수 13~340개짜리 저가 상품이 가격 천장을 눌러놨습니다.","다이소 검색 34,320"],
+    ["<strong>기능축은 이미 포화입니다.</strong> 접이식 세부 형태(등받이·쿠션·철제·원목·현관용) 31개 키워드의 경쟁강도 중앙값이 576입니다. SKU를 더 넣어도 묻힙니다.","31개 키워드 · 경쟁강도 576"],
+    ["<strong>리클라이너의자는 분리해서 보세요.</strong> 검색 13,880에 경쟁강도 22.1로 수치는 좋지만 간이·접이식 제품군이 아닙니다. 별도 소싱 검토 대상입니다.","검색 13,880 · 경쟁강도 22.1"]
+  ],
+  mk: [
+    ["<strong>대형 키워드에 광고를 걸지 마세요.</strong> '의자'와 '접이식의자'는 검색량이 압도적이지만 모바일 클릭률이 0.9% 미만인데 광고단가는 4,000원대입니다. 노출만 사고 전환은 안 나옵니다.","CTR 0.85% · 단가 4,130원"],
+    ["<strong>예산은 교회의자에 몰아주세요.</strong> 모바일 클릭률 8.74%로 카테고리 중앙값(0.88%)의 10배입니다. 단가 3,680원이 비싸 보여도 반응률이 상쇄합니다.","CTR 8.74%"],
+    ["<strong>오타 키워드를 상품명에 심으세요.</strong> 프라스틱의자(CTR 8.54%), 접의식의자, 간의의자는 실제로 검색되는 오타입니다. 합쳐서 월 4,850회를 광고 없이 가져올 수 있습니다.","합산 4,850"],
+    ["<strong>브랜드 검색 비중 22.3%로 셋 중 가장 낮습니다.</strong> 이 카테고리만큼은 브랜드 장벽이 낮다는 뜻인데, 대신 무명 판매자끼리의 상품 포화로 막혀 있습니다. 장벽의 종류가 다릅니다.","일반 검색 77.7%"],
+    ["<strong>콘텐츠로 밀 주제가 없습니다.</strong> 정보성 검색이 거의 없고 대부분 단순 상품 탐색입니다. 블로그보다 상세페이지 개선에 자원을 쓰세요.","탐색 초기 키워드 다수"]
+  ]
+},
+"식탁테이블": {
+  verdict: "가장 큰 시장이자 공백도 가장 많습니다. 다만 검색량의 70.8%가 브랜드 지명이라, 일반 판매자가 경쟁할 수 있는 실제 시장은 보이는 것의 30% 수준입니다.",
+  warn: false,
+  md: [
+    ["<strong>'예쁜 식탁'이 아니라 '관리 쉬운 식탁'으로 파세요.</strong> 니즈축을 비교하면 관리·내구가 경쟁강도 18.9에 기회점수 6.45로 최상위인데, 인테리어 연출은 경쟁강도 166.6에 4.82로 최하위권입니다. 같은 식탁을 팔아도 소구점을 바꾸면 경쟁 밀도가 9배 차이 납니다.","관리·내구 18.9 vs 연출 166.6"],
+    ["<strong>세라믹·포세린이 그 니즈의 실체입니다.</strong> 세라믹식탁은 검색 30,750에 경쟁강도 7.15로 이 데이터 전체 최저 수준입니다. 원목식탁 80.0, 원형식탁 49.5와 비교됩니다.","세라믹 30,750 · 포세린 10,240"],
+    ["<strong>6인용이 4인용보다 덜 채워져 있습니다.</strong> 검색량은 6인용 23,290, 4인용 19,990으로 비슷한데 경쟁강도는 9.1 대 20.9입니다. 8인용도 2,830에 10.4로 같은 패턴입니다.","6인용 경쟁강도 9.1"],
+    ["<strong>상판 단품이 별도 시장으로 존재합니다.</strong> 치수 맞춤 니즈(월 24,190회)의 실체가 이겁니다. 기존 식탁의 상판만 바꾸려는 수요이고, 인조대리석상판은 경쟁강도 5.2입니다. 완제품보다 배송 부담도 작습니다.","치수 맞춤 24,190 · 최저 5.2"],
+    ["<strong>가변·다용도가 두 번째로 좋은 니즈축입니다.</strong> 모션테이블(9.9), 확장형식탁(10.4), 인덕션테이블(13.4). 경쟁강도 중앙 47.4에 기회점수 6.03으로, 관리·내구 다음입니다.","가변축 검색 44,020"]
+  ],
+  mk: [
+    ["<strong>브랜드 검색 70.8%를 직시하세요.</strong> 이케아 한 곳이 785,790회로 이 카테고리 브랜드 검색의 대부분입니다. 시장 규모를 이 숫자로 잡으면 계획이 통째로 어긋납니다. 실제 경쟁 가능 시장은 417,580회입니다.","이케아 785,790"],
+    ["<strong>반응률 최상위 셋을 먼저 집행하세요.</strong> 우드슬랩테이블 6.77%, 6인용식탁세트 6.66%, 우드슬랩 6.49%. 카테고리 중앙값 2.84%의 두 배가 넘습니다.","CTR 6.5~6.8%"],
+    ["<strong>광고단가 70원짜리를 선점하세요.</strong> 인덕션테이블·LPM상판·1600식탁·4인식탁은 최저 입찰가 수준인데 경쟁강도도 낮습니다. 적은 예산으로 자리를 잡을 수 있습니다.","단가 70원"],
+    ["<strong>상판 키워드는 콘텐츠로 접근하세요.</strong> 식탁상판교체 같은 검색이 존재합니다. 교체 방법·규격 재는 법 가이드를 만들면 구매 직전 단계의 트래픽을 선점할 수 있습니다.","치수 맞춤축 CTR 중앙 3.3%"],
+    ["<strong>모바일 80.8%.</strong> 상세페이지 첫 화면에 소재와 인원수가 보여야 합니다. 상위 키워드가 전부 그 두 가지 조합입니다.","모바일 80.8%"]
+  ]
+},
+"식탁세트": {
+  verdict: "식탁테이블과 같은 시장을 세트 단위로 본 것입니다. 광고 반응률이 셋 중 가장 높아 효율은 가장 좋지만, 한샘·까사미아의 브랜드 장벽이 두껍습니다.",
+  warn: false,
+  md: [
+    ["<strong>식탁테이블과 76개 키워드가 겹칩니다.</strong> 별개 시장이 아니라 같은 수요를 단품으로 파느냐 세트로 파느냐의 차이입니다. 두 카테고리 실적을 합산 관리하고, 소싱은 세트 구성 가능성으로 판단하세요.","중복 키워드 76개"],
+    ["<strong>의자 시장의 과포화를 세트로 우회하세요.</strong> 의자 단품은 경쟁강도 중앙 303으로 막혀 있지만, 식탁과 묶으면 22~57 구간에서 같은 의자를 팝니다. 세트 구성 자체가 진입 전략입니다.","세트 경쟁강도 22~57"],
+    ["<strong>6인 구성이 반복해서 비어 있습니다.</strong> 세라믹식탁6인용(9.7), 6인용원목식탁(19.6), 6인용식탁세트(22.1). 인원 수용 니즈가 검색의 가장 큰 덩어리인데 공급이 덜 찼습니다.","6인 계열 3개 모두 B구간"],
+    ["<strong>여기서도 관리·내구가 연출을 이깁니다.</strong> 세라믹·포세린 세트가 원목·엔틱 세트보다 경쟁이 훨씬 낮습니다. 세트는 객단가가 커서 소재 업그레이드를 설득하기도 쉽습니다.","소재축 기회 11개"],
+    ["<strong>업소용은 피하세요.</strong> 카페테이블세트·카페테이블의자 등의 경쟁강도 중앙값이 1,218입니다. 검색 비중 0.4%인데 경쟁만 극심합니다.","경쟁강도 1,218"]
+  ],
+  mk: [
+    ["<strong>광고 효율이 셋 중 가장 좋습니다.</strong> 모바일 클릭률 중앙값 3.56%로 식탁테이블 2.84%, 간이/접이식의자 0.88%를 앞섭니다. 같은 예산이면 여기부터 태우세요.","CTR 중앙 3.56%"],
+    ["<strong>반응률 상위: 수입가구 8.42%, 6인용원목식탁 6.82%, 6인용식탁세트 6.66%.</strong> 수입가구는 경쟁강도 45.2로 높지만 클릭률이 이를 상쇄합니다.","CTR 6.6~8.4%"],
+    ["<strong>한샘·까사미아 비교 콘텐츠로 트래픽을 흡수하세요.</strong> 한샘 계열만 월 285,760회, 까사미아 98,880회입니다. 사양·가격 비교 콘텐츠는 이 지명 검색의 일부를 끌어올 수 있는 거의 유일한 수단입니다.","브랜드 검색 59.4%"],
+    ["<strong>세트 키워드는 객단가가 높아 ROAS가 유리합니다.</strong> 같은 클릭 비용이라도 결제액이 크므로 단가 높은 키워드까지 입찰 여력이 생깁니다.","단가 중앙 865원"],
+    ["<strong>상위 20개가 검색의 81.9%를 차지합니다.</strong> 쏠림이 심하니 롱테일에 예산을 흩지 말고 상위 키워드 방어에 집중하세요.","상위 20개 = 81.9%"]
+  ]
+}
+};
+
+</script>
+<script>
+const fmt = n => n.toLocaleString('ko-KR');
+const QN = {A:'대시장·고경쟁', B:'기회', C:'니치', D:'회피'};
+const cats = Object.keys(DATA);
+const CMP = {
+"식탁테이블":["1순위","가장 큰 시장이면서 공백도 가장 많습니다. 관리·내구 소재, 6인용 사이즈, 상판 단품까지 들어갈 자리가 셋입니다."],
+"식탁세트":["1순위","같은 시장을 세트로 판 것입니다. 광고 반응이 가장 좋고, 포화된 의자 시장을 세트 구성으로 우회할 수 있습니다."],
+"간이/접이식의자":["보류","경쟁강도가 식탁류의 4~5배인데 광고 반응은 3분의 1입니다. 아코디언의자와 업소·행사용 외에 신규 자리가 없습니다."]};
+let cur = cats[1], qf = 'B', sk = 'sc', sd = -1, q = '';
+
+/* ---------- 01 카테고리 비교 ---------- */
+function renderTop(){
+  const order=['식탁테이블','식탁세트','간이/접이식의자'];
+  const bc=Math.min(...cats.map(c=>DATA[c].sum.medC));
+  const bt=Math.max(...cats.map(c=>DATA[c].sum.mctr));
+  document.getElementById('top').innerHTML=`
+  <section style="margin-top:0">
+    <div class="sh"><h2><span>01</span>어느 카테고리부터 손댈 것인가</h2>
+      <p>카드를 누르면 그 카테고리의 상세 분석으로 이동합니다</p></div>
+    <p class="lead">세 카테고리는 <b>막히는 이유가 다릅니다.</b> 식탁류는 상품이 덜 채워져 있어 들어갈 틈이 있고, 간이/접이식의자는 무명 판매자들의 상품 포화로 막혀 있습니다.</p>
+    <div class="cmp">${order.map(c=>{const s=DATA[c].sum,[rk,note]=CMP[c];
+      return `<button class="cc" data-c="${c}" aria-current="${c===cur}">
+        <div class="cc-t"><h4>${c}</h4><span class="pill ${rk==='1순위'?'good':'bad'}">${rk}</span></div>
+        <dl>
+          <dt>경쟁 가능 검색량</dt><dd>${fmt(s.s)}</dd>
+          <dt>경쟁강도 중앙값</dt><dd class="${s.medC===bc?'g':(s.medC>bc*3?'b':'')}">${s.medC.toFixed(1)}</dd>
+          <dt>상품수 중앙값</dt><dd>${fmt(Math.round(s.medP))}</dd>
+          <dt>모바일 CTR</dt><dd class="${s.mctr===bt?'g':(s.mctr<bt*.4?'b':'')}">${s.mctr}%</dd>
+          <dt>기회 키워드</dt><dd>${s.qB}개</dd>
+        </dl><p>${note}</p>
+        <span class="go">${c===cur?'지금 보는 중':'상세 분석 보기'}<span class="cur">${c===cur?'▾':'→'}</span></span>
+      </button>`;}).join('')}</div>
+  </section>`;
+  document.querySelectorAll('.cc').forEach(el=>el.onclick=()=>{
+    const c=el.dataset.c;
+    if(c!==cur){cur=c;qf='B';sk='sc';sd=-1;q='';pv='md';renderTop();render();}
+    const v=document.getElementById('view');
+    if(v&&v.scrollIntoView) v.scrollIntoView({behavior:'smooth',block:'start'});});
+}
+
+/* ---------- 03 시장 지도 ---------- */
+function drawMap(d){
+  const W=980,H=470,L=58,R=22,T=22,B=44;
+  const rows=d.rows,iw=W-L-R,ih=H-T-B;
+  const lg=v=>Math.log10(Math.max(v,0.01));
+  const xs=rows.map(r=>lg(r.s)),ys=rows.map(r=>lg(r.ci));
+  const x0=Math.min(...xs)-.12,x1=Math.max(...xs)+.12;
+  const y0=Math.min(...ys)-.15,y1=Math.max(...ys)+.15;
+  const X=v=>L+(lg(v)-x0)/(x1-x0)*iw, Y=v=>T+ih-(lg(v)-y0)/(y1-y0)*ih;
+  const mx=X(d.sum.medS),my=Y(d.sum.medC);
+  const mc=Math.max(...rows.map(r=>r.mctr))||1;
+  const rad=v=>3.4+Math.sqrt(v/mc)*8.5;
+  const C={A:'var(--warn)',B:'var(--good)',C:'var(--info)',D:'var(--bad)'};
+  let s=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="검색량 대비 경쟁강도 분포">`;
+  s+=`<rect x="${mx}" y="${my}" width="${L+iw-mx}" height="${T+ih-my}" rx="8" fill="var(--good)" opacity=".07"/>`;
+  for(let e=Math.ceil(x0);e<=x1;e++){const px=X(Math.pow(10,e));
+    s+=`<line x1="${px}" y1="${T}" x2="${px}" y2="${T+ih}" stroke="var(--line2)"/>
+    <text x="${px}" y="${T+ih+17}" fill="var(--ink3)" font-size="10.5" text-anchor="middle" font-family="Space Grotesk">${fmt(Math.pow(10,e))}</text>`;}
+  for(let e=Math.ceil(y0);e<=y1;e++){const py=Y(Math.pow(10,e)),vv=Math.pow(10,e);
+    s+=`<line x1="${L}" y1="${py}" x2="${L+iw}" y2="${py}" stroke="var(--line2)"/>
+    <text x="${L-9}" y="${py+4}" fill="var(--ink3)" font-size="10.5" text-anchor="end" font-family="Space Grotesk">${vv<1?vv.toFixed(1):fmt(vv)}</text>`;}
+  s+=`<line x1="${mx}" y1="${T}" x2="${mx}" y2="${T+ih}" stroke="var(--ink3)" stroke-dasharray="2 5" opacity=".6"/>
+      <line x1="${L}" y1="${my}" x2="${L+iw}" y2="${my}" stroke="var(--ink3)" stroke-dasharray="2 5" opacity=".6"/>`;
+  const ql=(x,y,t,a)=>`<text x="${x}" y="${y}" fill="var(--ink3)" font-size="11" text-anchor="${a}">${t}</text>`;
+  s+=ql(L+8,T+15,'수요 적고 경쟁 심함','start')+ql(L+iw-8,T+15,'수요 크고 경쟁 심함','end')
+    +ql(L+8,T+ih-8,'니치','start')+ql(L+iw-8,T+ih-8,'수요 있고 경쟁 낮음 — 목표 구간','end');
+  rows.slice().sort((a,b)=>b.s-a.s).forEach(r=>{
+    s+=`<circle class="dot" cx="${X(r.s).toFixed(1)}" cy="${Y(r.ci).toFixed(1)}" r="${rad(r.mctr).toFixed(1)}"
+      fill="${C[r.q]}" fill-opacity="${r.q==='B'?.55:.26}" stroke="${C[r.q]}" stroke-opacity=".8" stroke-width="1.1"
+      data-k="${r.kw}" data-s="${fmt(r.s)}" data-c="${r.ci}" data-m="${r.mctr}" data-p="${fmt(r.p)}"
+      data-a="${fmt(r.cpc)}" data-q="${QN[r.q]}" data-n="${r.nd.join(' · ')}"/>`;});
+  d.rows.filter(r=>r.q==='B').sort((a,b)=>b.sc-a.sc).slice(0,6).forEach(r=>{
+    const px=X(r.s),py=Y(r.ci),fl=px>W-180;
+    s+=`<text x="${(fl?px-rad(r.mctr)-6:px+rad(r.mctr)+6).toFixed(1)}" y="${(py+4).toFixed(1)}"
+      fill="var(--ink)" font-size="12" font-weight="500" text-anchor="${fl?'end':'start'}">${r.kw}</text>`;});
+  s+=`<text x="${L+iw}" y="${H-5}" fill="var(--ink3)" font-size="11" text-anchor="end">한 달 검색량 →</text>
+      <text x="${L-9}" y="${T-7}" fill="var(--ink3)" font-size="11" text-anchor="end">↑ 경쟁강도</text></svg>`;
+  return s;
+}
+
+/* ---------- 04 축 행 (조밀 + 펼침) ---------- */
+function axRows(list){
+  const mx=Math.max(...list.map(c=>c.s));
+  const head=`<div class="axh"><div>축</div><div>검색 비중</div><div>경쟁강도</div>
+    <div>기회점수</div><div>CTR</div><div>광고단가</div><div></div></div>`;
+  return '<div class="ax">'+head+list.map((c,i)=>{
+    const t=c.tone==='good'?'good':(c.tone==='bad'?'bad':'');
+    const g=c.tone==='good'?'g':(c.tone==='bad'?'b':'');
+    const open = c.tone==='good' || (c.splits&&c.splits.length);
+    let sp='';
+    if(c.splits&&c.splits.length){
+      const lo=c.splits[0].ci,hi=c.splits[c.splits.length-1].ci;
+      sp=`<div class="split"><p class="split-h">이 축을 고객 니즈로 다시 쪼개면</p>`+
+        c.splits.map(x=>`<div class="sp"><span class="sp-n">${x.name}</span>
+          <span class="sp-e">${x.ex.join(' · ')}</span>
+          <span class="sp-c ${x.ci===lo?'g':(x.ci===hi?'b':'')}">${x.ci}<small>검색 ${x.share}%</small></span></div>`).join('')+`</div>`;}
+    return `<div class="axr ${open?'open':''} ${c.tone==='none'?'dim':''}" data-i="${i}">
+      <button class="axt" aria-expanded="${open}">
+        <span class="axn"><strong>${c.name}</strong><span class="pill ${c.tone}">${c.lab}</span></span>
+        <span class="axbar"><span class="t"><i class="${t}" style="width:${(c.s/mx*100).toFixed(1)}%"></i></span>
+          <span class="l">${c.share}%</span></span>
+        <span class="axv ${g}">${c.ci}</span>
+        <span class="axv">${c.sc.toFixed(1)}</span>
+        <span class="axv hide-m">${c.mctr.toFixed(1)}%</span>
+        <span class="axv hide-m">${fmt(c.cpc)}</span>
+        <span class="chev">▾</span>
+      </button>
+      <div class="axd">
+        <p class="say">${c.say}</p>
+        <p class="ex"><b>포함 ${c.n}개</b>${c.ex.join(' · ')}${c.n>c.ex.length?` 외 ${c.n-c.ex.length}개`:''}</p>
+        ${sp}
+      </div></div>`;}).join('')+'</div>';
+}
+
+/* ---------- 05 경로 리스트 ---------- */
+const PATH = {
+  md:{label:'MD 우선', role:'수요가 큰 시장입니다. <b>매대 구성과 SKU 기획</b>에 쓰세요. 진입 자체는 어렵습니다.'},
+  org:{label:'오가닉 진입', role:'등록 상품이 적어 <b>상품명과 상세페이지</b>만으로 뚫립니다. 광고비가 들지 않고 한번 오르면 유지됩니다.'},
+  ad:{label:'광고 진입', role:'입찰가가 싸고 클릭이 붙습니다. <b>상품수와 무관하게</b> 즉시 노출되지만, 광고를 끄면 사라집니다.'}
+};
+let pv = 'md';
+function gateText(d,k){
+  if(k==='md')  return '검색 ≥ 1,000 · 기회점수 순';
+  if(k==='org') return '상품수 ≤ 30,000 · 검색 200~3,000 · CTR ≥ 1%';
+  return `CPC ≤ ${fmt(d.gate.cpc)}원 · CTR ≥ ${d.gate.ctr}% · 검색 ≥ 500`;
+}
+function routes(d,kw){
+  const inM=d.md.some(r=>r.kw===kw), inO=d.org.some(r=>r.kw===kw), inA=d.ad.some(r=>r.kw===kw);
+  let s='';
+  if(inM) s+='<b class="m">MD</b>';
+  if(inO) s+='<b class="o">오가닉</b>';
+  if(inA) s+='<b class="a">광고</b>';
+  return (inM+inO+inA)>1 ? `<span class="route">${s}</span>` : '';
+}
+function pathTable(d){
+  const list=d[pv]||[];
+  if(!list.length) return `<div class="pt"><p class="pempty">조건을 통과한 키워드가 없습니다. 이 경로로는 진입할 자리가 없다는 뜻입니다.</p></div>`;
+  const hi={md:'s',org:'p',ad:'cpc'}[pv];
+  const cols=[['kw','키워드'],['s','검색량'],['p','상품수'],['ci','경쟁강도'],['mctr','모바일 CTR'],['cpc','CPC'],['nd','니즈']];
+  let h='<div class="pt"><div class="pscroll"><table><thead><tr>';
+  cols.forEach(([k,l])=>h+=`<th>${l}</th>`);
+  h+='</tr></thead><tbody>';
+  list.slice(0,14).forEach(r=>{
+    h+=`<tr><td class="k">${r.kw}${routes(d,r.kw)}</td>
+      <td class="${hi==='s'?'hi':''}">${fmt(r.s)}</td>
+      <td class="${hi==='p'?'hi':''}">${fmt(r.p)}</td>
+      <td>${r.ci}</td><td>${r.mctr.toFixed(2)}%</td>
+      <td class="${hi==='cpc'?'hi':''}">${fmt(r.cpc)}</td>
+      <td class="nd">${r.nd.slice(0,2).join(' · ')}</td></tr>`;});
+  return h+'</tbody></table></div></div>';
+}
+function refreshPaths(){
+  const d=DATA[cur];
+  document.getElementById('pgate').textContent=gateText(d,pv);
+  document.getElementById('prole').innerHTML=PATH[pv].role;
+  document.getElementById('ptable').innerHTML=pathTable(d);
+}
+
+/* ---------- 06 표 + 검색 ---------- */
+const esc = s => s.replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+function hl(text,term){
+  if(!term) return esc(text);
+  const i=text.toLowerCase().indexOf(term.toLowerCase());
+  if(i<0) return esc(text);
+  return esc(text.slice(0,i))+'<mark>'+esc(text.slice(i,i+term.length))+'</mark>'+esc(text.slice(i+term.length));
+}
+function filtered(d){
+  let r = qf==='ALL' ? d.rows.slice() : d.rows.filter(x=>x.q===qf);
+  const t=q.trim().toLowerCase();
+  if(t) r=r.filter(x=>x.kw.toLowerCase().includes(t)||x.cl.toLowerCase().includes(t)
+    ||x.nd.some(n=>n.toLowerCase().includes(t)));
+  r.sort((a,b)=>{const x=a[sk],y=b[sk];
+    return (typeof x==='string'?x.localeCompare(y,'ko'):x-y)*sd;});
+  return r;
+}
+function tableBody(d){
+  const rows=filtered(d);
+  if(!rows.length) return `<div class="empty">${q?`&ldquo;${esc(q)}&rdquo;에 해당하는 키워드가 없습니다.`:'이 구간에 해당하는 키워드가 없습니다.'}</div>`;
+  const mx=Math.max(...rows.map(r=>r.s),1);
+  const cols=[['kw','키워드'],['s','검색량'],['p','상품수'],['ci','경쟁강도'],['mctr','모바일 CTR'],['cpc','광고단가'],['cl','속성'],['sc','기회점수']];
+  let h='<div class="ts"><table class="kt"><thead><tr>';
+  cols.forEach(([k,l])=>h+=`<th data-s="${k}" data-a class="${sk===k?(sd>0?'up':'down'):''}">${l}</th>`);
+  h+='</tr></thead><tbody>';
+  rows.forEach(r=>h+=`<tr><td class="kw">${hl(r.kw,q.trim())}</td>
+    <td>${fmt(r.s)}</td><td>${fmt(r.p)}</td>
+    <td><span class="qd q${r.q}">${r.ci}</span></td>
+    <td>${r.mctr.toFixed(2)}%</td><td>${fmt(r.cpc)}</td>
+    <td class="tag">${r.cl}</td><td>${r.sc.toFixed(2)}</td></tr>`);
+  return h+'</tbody></table></div>';
+}
+function refreshTable(){
+  const d=DATA[cur];
+  document.getElementById('tbody').innerHTML=tableBody(d);
+  document.getElementById('tcnt').textContent=`${filtered(d).length} / ${d.rows.length}개`;
+  bindSort();
+}
+function bindSort(){
+  document.querySelectorAll('.kt th[data-s]').forEach(th=>th.onclick=()=>{
+    const k=th.dataset.s;
+    if(sk===k) sd*=-1; else {sk=k; sd=(k==='kw'||k==='cl')?1:-1;}
+    refreshTable();});
+}
+
+/* ---------- render ---------- */
+function render(){
+  tabBtns.forEach((b,i)=>b.setAttribute('aria-selected',cats[i]===cur));
+  const d=DATA[cur],ins=INSIGHT[cur];
+  document.getElementById('view').innerHTML=`
+  <section>
+    <div class="sh"><h2><span>02</span>${cur}</h2>
+      <p>브랜드 제외 일반 키워드 ${d.sum.n}개</p></div>
+    <dl class="kpi">
+      <div class="kp"><dt>경쟁 가능 검색량</dt><dd>${fmt(d.sum.s)}</dd></div>
+      <div class="kp"><dt>경쟁강도 중앙값</dt><dd>${d.sum.medC.toFixed(1)}</dd></div>
+      <div class="kp"><dt>상품수 중앙값</dt><dd>${fmt(Math.round(d.sum.medP))}</dd></div>
+      <div class="kp"><dt>모바일 CTR</dt><dd>${d.sum.mctr}<small>%</small></dd></div>
+      <div class="kp"><dt>광고단가 중앙값</dt><dd>${fmt(d.sum.cpc)}<small>원</small></dd></div>
+      <div class="kp"><dt>모바일 검색</dt><dd>${d.sum.mob}<small>%</small></dd></div>
+      <div class="kp"><dt>상위 20개 집중도</dt><dd>${d.sum.top20}<small>%</small></dd></div>
+    </dl>
+  </section>
+
+  <section>
+    <div class="sh"><h2><span>03</span>시장 지도</h2>
+      <p>점 크기는 모바일 클릭률 · 점선은 이 카테고리 중앙값</p></div>
+    <div class="panel" id="mapbox">${drawMap(d)}<div class="tip" id="tip"></div></div>
+    <div class="legend">
+      <span><i style="background:var(--good)"></i>기회 ${d.sum.qB}</span>
+      <span><i style="background:var(--warn)"></i>대시장·고경쟁 ${d.sum.qA}</span>
+      <span><i style="background:var(--info)"></i>니치 ${d.sum.qC}</span>
+      <span><i style="background:var(--bad)"></i>회피 ${d.sum.qD}</span>
+    </div>
+  </section>
+
+  <section>
+    <div class="sh"><h2><span>04</span>어떤 축으로 상품을 늘릴 것인가</h2>
+      <p>행을 누르면 근거와 포함 키워드가 펼쳐집니다</p></div>
+    <p class="lead">${d.lead}</p>
+    ${axRows(d.cards)}
+    <p class="axhint">축 하나가 통째로 좋거나 나쁜 경우는 드뭅니다. 큰 축은 <b>고객이 왜 그걸 찾는지</b>로 한 번 더 쪼갰습니다. 같은 소재 축이라도 &ldquo;물 안 배는&rdquo;을 원하는 쪽과 &ldquo;분위기 좋은&rdquo;을 원하는 쪽은 경쟁 밀도가 몇 배씩 다릅니다. 발주는 축으로, 상품명은 그 아래 니즈로 정하시면 됩니다.</p>
+  </section>
+
+  <section>
+    <div class="sh"><h2><span>05</span>진입 경로별 키워드</h2>
+      <p>시장이 열려 있는 곳 · 광고 없이 뚫는 곳 · 광고로 사는 곳</p></div>
+    <p class="lead">진입로는 둘입니다. <b>오가닉</b>은 등록 상품이 적어야 뚫리고, <b>광고</b>는 상품이 아무리 많아도 입찰가만 낮으면 들어갑니다. 상품수만 보면 광고로 열려 있는 자리를 통째로 놓칩니다. 여러 경로에 걸린 키워드는 이름 옆에 배지로 표시했습니다.</p>
+    <div class="pbar">
+      <span class="plab">진입 경로</span>
+      <div class="psegs" id="psegs">${['md','org','ad'].map(x=>`<button data-p="${x}" aria-pressed="${pv===x}">${PATH[x].label}<i>${(d[x]||[]).length}</i></button>`).join('')}</div>
+      <span class="pgate" id="pgate"></span>
+    </div>
+    <p class="prole" id="prole"></p>
+    <div id="ptable"></div>
+    <p class="note">세 경로는 <b>실행 주체가 다릅니다.</b> MD 우선은 발주 회의에서, 오가닉 진입은 상품 등록 화면에서, 광고 진입은 광고 계정에서 씁니다. 배지가 둘 이상 붙은 키워드는 상품도 적고 광고도 싼 자리라 우선순위 1번입니다.</p>
+  </section>
+
+  <section>
+    <div class="sh"><h2><span>06</span>키워드 전체</h2>
+      <p>키워드 · 속성 · 니즈로 검색되며, 열 제목을 누르면 정렬됩니다</p></div>
+    <div class="tbar">
+      <div class="search ${q?'has':''}" id="sbox">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="sinput" type="search" placeholder="예: 세라믹, 6인용, 관리·내구" value="${esc(q)}"
+          autocomplete="off" aria-label="키워드 검색">
+        <button class="clr" id="sclr" aria-label="검색어 지우기">×</button>
+      </div>
+      <div class="segs" id="segs">${['B','A','C','D','ALL'].map(x=>`<button data-q="${x}" aria-pressed="${qf===x}">${x==='ALL'?'전체':QN[x]}</button>`).join('')}</div>
+      <span class="cnt" id="tcnt"></span>
+    </div>
+    <div class="tw" id="tbody"></div>
+  </section>
+
+  <section>
+    <div class="sh"><h2><span>07</span>무엇을 할 것인가</h2></div>
+    <div class="verdict ${ins.warn?'warn':''}">${ins.verdict}</div>
+    <div class="two-ins">
+      <div class="ic"><h3>상품 기획·소싱</h3><p class="role">어떤 상품을 넣을지</p>
+        <ul>${ins.md.map(([a,b])=>`<li>${a}<em>${b}</em></li>`).join('')}</ul></div>
+      <div class="ic"><h3>마케팅·광고</h3><p class="role">어디에 예산을 쓸지</p>
+        <ul>${ins.mk.map(([a,b])=>`<li>${a}<em>${b}</em></li>`).join('')}</ul></div>
+    </div>
+  </section>
+
+  <section>
+    <details class="cav"><summary>이 수치를 믿기 전에 — 한계 7가지</summary>
+      <div class="cavbody"><ol>
+        <li><b>진입로가 둘이라 리스트를 셋으로 나눴습니다.</b> 경쟁강도가 낮으면 수요 대비 공급이 부족한 좋은 <em>시장</em>이고, 상품수가 적으면 광고 없이 뚫는 <em>오가닉 입구</em>, CPC가 싸고 클릭이 붙으면 상품수와 무관하게 사는 <em>광고 입구</em>입니다. 미니식탁은 상품이 20만 개라 오가닉으로는 막혔지만 CPC 570원에 CTR 5.46%라 광고로는 열려 있습니다. 상품수만 보면 이런 자리를 통째로 놓칩니다.</li>
+        <li><b>상품수에는 허수가 많습니다.</b> 5만 개 중 실제로 1페이지를 방어하는 건 상위 수십 개고 나머지는 품절·중복·판매종료입니다. 그래서 상품수 컷은 절대 기준이 아니라 <em>덜 틀린 기준</em>입니다. 진입 전 1페이지의 리뷰 수를 직접 확인하세요.</li>
+        <li><b>브랜드 키워드를 전부 제외했습니다.</b> 그 브랜드 상품만 노출되어 경쟁강도가 0.3~0.7로 찍히고, 두면 기회 상위를 싹쓸이합니다. 다만 <em>브랜드 점유율</em>은 이 데이터로 낼 수 없습니다. 상위 500개만 있어 각 브랜드의 롱테일이 잘려 있고, 식탁테이블 브랜드 검색 70.8% 중 53.7%p가 &lsquo;이케아&rsquo; 하나입니다.</li>
+        <li><b>2026년 8월 한 달 스냅샷입니다.</b> 8월은 식탁류 비수기(이사철 이전)이고 접이식의자 성수기라 카테고리 간 규모 비교가 불리하게 잡혀 있을 수 있습니다. 추세는 알 수 없습니다.</li>
+        <li><b>매출·전환율·가격 데이터가 없습니다.</b> 검색량은 관심의 크기이지 구매의 크기가 아닙니다. 여기서 나온 키워드는 후보이지 결론이 아닙니다.</li>
+        <li><b>CPC는 실제 지불액이 아닙니다.</b> 데이터 정의상 &ldquo;최하위 노출 광고의 최고입찰가&rdquo;라, 광고 슬롯 <em>하단</em>에 걸리는 최소 비용에 가깝습니다. 상단을 노리면 더 듭니다. 광고 진입 리스트는 &ldquo;최소 진입 비용&rdquo; 순위로 읽으세요. 또 CTR·CPC가 실제 진입 난이도를 낮춘다는 건 논리적 추론이지 이 데이터로 검증된 사실이 아닙니다.</li>
+        <li><b>쇼핑성 지수는 점수에 넣지 않았습니다.</b> 전체의 76%가 79로 고정되어 변별력이 없습니다. 쇼핑탭 노출 여부를 가늠하는 참고값으로만 보세요.</li>
+      </ol>
+      <p class="formula">기회점수 = 0.40×수요(검색량 백분위) + 0.40×공급부족(상품수 백분위 역순) + 0.20×반응(모바일 CTR 백분위), 카테고리 내부 백분위로 계산해 10점 환산. 검색량과 상품수는 독립적으로 측정된 값이라 이중 계산이 없습니다. 경쟁강도(상품수÷검색수)를 점수에 함께 넣으면 검색량이 세 번 반영되어 대형 키워드가 과대평가되므로 제외했습니다.</p>
+      </div></details>
+  </section>`;
+
+  document.querySelectorAll('.axr .axt').forEach(btn=>btn.onclick=()=>{
+    const row=btn.parentElement, on=row.classList.toggle('open');
+    btn.setAttribute('aria-expanded', on);});
+
+  refreshPaths();
+  document.getElementById('psegs').onclick=e=>{const b=e.target.closest('button');
+    if(b){pv=b.dataset.p;[...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',x===b));refreshPaths();}};
+
+  refreshTable();
+  document.getElementById('segs').onclick=e=>{const b=e.target.closest('button');
+    if(b){qf=b.dataset.q;[...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',x===b));refreshTable();}};
+  const si=document.getElementById('sinput'),sb=document.getElementById('sbox');
+  si.addEventListener('input',()=>{q=si.value;sb.classList.toggle('has',!!q);refreshTable();});
+  si.addEventListener('keydown',e=>{if(e.key==='Escape'){q='';si.value='';sb.classList.remove('has');refreshTable();}});
+  document.getElementById('sclr').onclick=()=>{q='';si.value='';sb.classList.remove('has');refreshTable();si.focus();};
+
+  const box=document.getElementById('mapbox'),tip=document.getElementById('tip');
+  box.addEventListener('mousemove',e=>{
+    const c=e.target.closest('.dot');
+    if(!c){tip.style.opacity=0;return;}
+    const o=c.dataset,r=box.getBoundingClientRect();
+    tip.innerHTML=`<b>${o.k}</b>검색 ${o.s} · 상품 ${o.p}<br>경쟁강도 ${o.c} · CTR ${o.m}%<br>광고단가 ${o.a}원<br><span style="opacity:.65">${o.q} · ${o.n}</span>`;
+    tip.style.opacity=1;
+    let x=e.clientX-r.left+16,y=e.clientY-r.top+16;
+    if(x>r.width-262)x=e.clientX-r.left-256;
+    if(y>r.height-124)y=e.clientY-r.top-124;
+    tip.style.left=x+'px';tip.style.top=y+'px';});
+  box.addEventListener('mouseleave',()=>tip.style.opacity=0);
+}
+
+const tabsEl=document.getElementById('tabs');
+const tabBtns=[];
+cats.forEach(c=>{const b=document.createElement('button');
+  b.setAttribute('role','tab');
+  b.innerHTML=c+'<i>'+DATA[c].sum.n+'</i>';
+  b.onclick=()=>{cur=c;qf='B';sk='sc';sd=-1;q='';pv='md';renderTop();render();};
+  tabsEl.appendChild(b); tabBtns.push(b);});
+renderTop();
+render();
+</script>
+</body>
+</html>

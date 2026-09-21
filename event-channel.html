@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>가구 / 오늘의집 행사채널 분석</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#EAEBE7;--card:#F7F7F5;--sunk:#E1E2DD;--ink:#15171A;--ink2:#464B52;--mute:#787E86;
+  --line:#C3C6C1;--hair:#D9DBD6;--accent:#16457A;--teal:#12654F;--rose:#9E3030;--ochre:#8A6314}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#111316;--card:#191C20;--sunk:#0B0D10;--ink:#E8EAEC;--ink2:#AFB5BC;--mute:#7C838B;
+  --line:#2C3138;--hair:#22262C;--accent:#6E9BD6;--teal:#4FC0A0;--rose:#E0757A;--ochre:#D5A748}}
+:root[data-theme="dark"]{--paper:#111316;--card:#191C20;--sunk:#0B0D10;--ink:#E8EAEC;--ink2:#AFB5BC;
+  --mute:#7C838B;--line:#2C3138;--hair:#22262C;--accent:#6E9BD6;--teal:#4FC0A0;--rose:#E0757A;--ochre:#D5A748}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:"IBM Plex Sans KR","Apple SD Gothic Neo",system-ui,sans-serif;
+  line-height:1.62;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;font-size:15px}
+.wrap{max-width:840px;margin:0 auto;padding:52px 22px 90px}
+a{color:inherit}
+.kicker{font-size:12.5px;color:var(--mute);margin-bottom:10px}
+h1{margin:0 0 12px;font-size:clamp(25px,4.3vw,35px);font-weight:600;letter-spacing:-.025em;line-height:1.24}
+.sub{margin:0;font-size:15px;color:var(--ink2);max-width:62ch}
+.byline{margin-top:18px;padding-top:14px;border-top:1px solid var(--line);
+  display:flex;flex-wrap:wrap;gap:6px 22px;font-size:12.5px;color:var(--mute)}
+.headline{background:var(--card);border:1px solid var(--line);border-top:3px solid var(--accent);
+  padding:24px 26px;margin:38px 0 12px}
+.headline .lbl{font-size:12.5px;color:var(--mute);margin-bottom:12px}
+.headline p{margin:0 0 14px;font-size:18.5px;line-height:1.52;letter-spacing:-.015em;font-weight:500}
+.headline p:last-of-type{margin-bottom:0}
+.rec{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:1px;background:var(--line);
+  border:1px solid var(--line);margin-top:18px}
+.rec div{background:var(--card);padding:12px 14px}
+.rec b{display:block;font-size:16.5px;font-weight:600;letter-spacing:-.02em}
+.rec span{display:block;font-size:11.5px;color:var(--mute);margin-top:1px}
+.caption{font-size:12.5px;color:var(--mute);margin:0 0 40px}
+h2{margin:52px 0 6px;font-size:20px;font-weight:600;letter-spacing:-.02em}
+h2 .n{color:var(--mute);font-weight:400;margin-right:9px}
+h3{margin:32px 0 5px;font-size:15.5px;font-weight:600;letter-spacing:-.01em}
+p{margin:0 0 13px}
+.lead{color:var(--ink2);max-width:66ch}
+.small{font-size:12.5px;color:var(--mute);max-width:70ch}
+.qs{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);margin-top:16px}
+.q{background:var(--card);padding:14px 16px;display:grid;grid-template-columns:24px 1fr;gap:12px;align-items:start}
+.q i{font-style:normal;color:var(--mute);font-size:13px;padding-top:2px}
+.q b{font-weight:500}
+.q em{font-style:normal;display:block;font-size:13px;color:var(--mute);margin-top:2px}
+.find{border-left:3px solid var(--accent);padding:2px 0 2px 16px;margin:22px 0}
+.find b{display:block;font-size:16.5px;font-weight:600;letter-spacing:-.015em;margin-bottom:5px}
+.find p{margin:0;font-size:14px;color:var(--ink2)}
+.find.flip{border-color:var(--rose)}
+.find.win{border-color:var(--teal)}
+.viz{background:var(--card);border:1px solid var(--line);padding:16px 18px;margin:16px 0 8px}
+.vleg{font-size:12px;color:var(--mute);margin-top:12px;padding-top:10px;border-top:1px solid var(--hair);
+  display:flex;flex-wrap:wrap;gap:16px}
+.sw{display:inline-block;width:15px;height:9px;border-radius:2px;vertical-align:1px;margin-right:5px}
+.grow{display:grid;grid-template-columns:106px 1fr 88px;gap:11px;align-items:center;padding:6px 0}
+.gname{font-size:13px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gname.hl{color:var(--ink);font-weight:500}
+.gbar{display:flex;height:20px;border-radius:2px;overflow:hidden;background:var(--sunk)}
+.gseg{height:100%}
+.gval{font-size:12.5px;color:var(--mute);text-align:right;white-space:nowrap;line-height:1.35}
+@media(max-width:560px){.grow{grid-template-columns:82px 1fr 72px;gap:7px}}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:14px 0 6px}
+th{text-align:left;font-weight:500;color:var(--ink2);padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid var(--hair)}
+th.r,td.r{text-align:right}
+.g{color:var(--teal);font-weight:600}.b2{color:var(--rose)}
+.tw{overflow-x:auto}
+tr.win td{background:rgba(18,101,79,.07)}
+.tag{display:inline-block;font-size:10.5px;padding:0 5px;border-radius:2px;border:1px solid currentColor;color:var(--teal)}
+.wall{background:var(--card);border:1px solid var(--line);padding:16px 18px;margin:16px 0}
+.wrow{display:grid;grid-template-columns:86px 1fr 92px;gap:11px;align-items:center;padding:6px 0;font-size:13px}
+.wlab{color:var(--ink2);white-space:nowrap}
+.wt{height:19px;background:var(--sunk);border-radius:2px;position:relative}
+.wf{position:absolute;inset:0 auto 0 0;border-radius:2px}
+.wv{text-align:right;font-size:12.5px;color:var(--mute);white-space:nowrap}
+.pairs{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:16px 0}
+@media(max-width:640px){.pairs{grid-template-columns:1fr}}
+.pane{background:var(--card);border:1px solid var(--line);padding:14px 16px}
+.pane h4{margin:0 0 3px;font-size:14px;font-weight:600}
+.pane .cap{margin:0 0 12px;font-size:12px;color:var(--mute);line-height:1.45}
+.qrow{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;padding:4px 0;font-size:12.5px}
+.qlab{color:var(--ink2);white-space:nowrap;min-width:86px}
+.qt{height:15px;background:var(--sunk);border-radius:2px;position:relative;min-width:18px}
+.qf{position:absolute;inset:0 auto 0 0;border-radius:2px}
+.qv{color:var(--mute);font-size:12px;min-width:42px;text-align:right}
+.prop{border:1px solid var(--line);background:var(--card);margin:18px 0}
+.prop.dim{background:var(--sunk)}
+.phead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+  padding:12px 16px;border-bottom:1px solid var(--hair)}
+.phead b{font-size:15.5px;font-weight:600;letter-spacing:-.01em}
+.phead span{font-size:11.5px;color:var(--mute)}
+.pbody{padding:14px 16px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px 22px}
+.pgrid>div{font-size:13.5px;color:var(--ink2)}
+.pgrid em{font-style:normal;display:block;font-size:11.5px;color:var(--mute);margin-bottom:1px}
+.pgrid b{font-size:17px;font-weight:600;color:var(--teal);letter-spacing:-.02em}
+.pnote{margin:14px 0 0;font-size:12.5px;color:var(--mute);line-height:1.6}
+.limit{background:var(--sunk);border:1px solid var(--line);padding:18px 20px;margin:18px 0}
+.limit ul{margin:0;padding-left:18px}
+.limit li{margin-bottom:7px;font-size:13.5px;color:var(--ink2)}
+.limit li b{color:var(--ink);font-weight:500}
+.use{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);margin-top:16px}
+.ucard{background:var(--card);padding:16px 18px}
+.ucard b{display:block;font-size:14.5px;font-weight:600;margin-bottom:5px}
+.ucard p{margin:0;font-size:13.5px;color:var(--ink2)}
+.quote{border-left:2px solid var(--line);padding-left:13px;margin-top:9px;font-size:13.5px;color:var(--ink2)}
+details{margin-top:24px;border:1px solid var(--line);background:var(--card)}
+summary{padding:13px 16px;cursor:pointer;font-size:14px;font-weight:500;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"▸ ";color:var(--mute)}
+details[open] summary::before{content:"▾ "}
+.dbody{padding:0 16px 16px;border-top:1px solid var(--hair)}
+.dt{min-width:780px;font-size:12.5px}
+.dt th{position:sticky;top:0;background:var(--card);z-index:2;cursor:pointer}
+.dt th.up::after{content:" ▲";font-size:8px}.dt th.dn::after{content:" ▼";font-size:8px}
+.pn{display:inline-block;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  vertical-align:bottom;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:2px}
+.bd{font-size:11px;color:var(--mute)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--mute)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="kicker">가구 / 오늘의집 행사채널 분석</div>
+<h1>오늘의집 행사에서<br>테이블·책상·의자는 왜 안 팔렸나</h1>
+<p class="sub">가구 카테고리 56개 상품을 수집해 우리 주력 카테고리의 진입 조건을 역산하고, 바로 올릴 수 있는 세트 구성안까지 도출했습니다.</p>
+<div class="byline">
+  <span>수집 2026-09-19 · 오늘의집 오늘의딜(가구)</span>
+  <span>56개 상품 · 49개 브랜드</span>
+  <span>수집 · 정제 · 분석 · 시각화 직접 수행</span>
+</div>
+
+<div class="headline">
+  <div class="lbl">결론</div>
+  <p>테이블·책상·의자는 <b>12개 상품(21.4%)</b>이 판매 중이나,
+     구좌 전체 판매의 <b>5.0%</b>에 그쳤습니다. 노출이 부족해서가 아니라 <b>가격과 구성</b> 때문이었습니다.</p>
+  <p>팔린 2개는 모두 <b>테이블에 의자를 붙인 세트</b>였고, 나머지 10개는 전부 단품이었습니다.</p>
+  <p style="font-size:14px;font-weight:400;color:var(--ink2);line-height:1.62;margin-top:16px">
+  수집부터 분석까지 AI로 처리했습니다. 매일 아침 구좌가 자동으로 수집되고, 분석 기준은 대화로 바꿉니다.
+  "의자 단독 상품만 따로 보여줘"나 "경쟁 벤더 기준으로 다시 묶어줘" 같은 요청이 즉시 반영됩니다.
+  사람이 표를 옮겨 적고 피벗을 돌리는 시간이 사라지므로, 제가 벤더 미팅을 하는 동안에도 데이터는 쌓입니다.</p>
+  <div class="rec">
+    <div><b>10만원 아래</b><span>최종가</span></div>
+    <div><b>테이블 + 의자 세트</b><span>상품 구성</span></div>
+    <div><b>50% 이상</b><span>할인율은 이 구간만</span></div>
+    <div><b>즉시 실행 가능</b><span>세트 구성안 도출</span></div>
+  </div>
+</div>
+<p class="caption">아래는 이 결론에 이른 과정입니다.</p>
+
+<h2><span class="n">01</span>왜 만들었나</h2>
+<p class="lead">MD는 매주 같은 질문에 답해야 합니다. 어느 상품을, 얼마에, 어떤 구성으로 제안할 것인가.
+경쟁 채널의 할인 구좌는 그 답이 이미 공개된 문서입니다. 채널이 어디에 자리를 줬고 소비자가 무엇을 샀는지가
+그대로 드러나기 때문입니다.</p>
+<p class="lead">보통 이 작업은 상품명과 가격을 엑셀에 옮겨 적는 선에서 끝납니다.
+결론을 내는 건 사람 몫으로 남습니다. 그 결론까지 데이터로 끌어내 보기로 했습니다.</p>
+<div class="qs">
+  <div class="q"><i>Q1</i><div><b>우리 카테고리는 이 구좌에서 어떤 위치인가</b>
+    <em>자리를 받고 있는가, 받고도 성과가 없는가</em></div></div>
+  <div class="q"><i>Q2</i><div><b>얼마에 제안해야 하는가</b>
+    <em>카테고리마다 가격대가 달라 절대 금액으로는 비교되지 않는다</em></div></div>
+  <div class="q"><i>Q3</i><div><b>할인율·옵션·묶음 중 무엇이 실제로 작동하는가</b>
+    <em>통념을 검증한다</em></div></div>
+</div>
+
+<h2><span class="n">02</span>데이터와 한계</h2>
+<p class="lead">상품명, 브랜드, 카테고리, 정가, 판매가, 쿠폰·카드 적용가, 할인 혜택, 리뷰 수, 평점,
+스타일링샷 수, 스크랩 수, 문의 수, 판매 상태를 수집했습니다. 판매량은 공개되지 않아
+<b>리뷰 수를 판매의 대용 지표</b>로 삼았습니다. 완전하지 않아 한계를 먼저 적습니다.</p>
+<div class="limit"><ul>
+  <li><b>리뷰는 판매량이 아니라 누적 판매 흔적입니다.</b> 오래 판 상품이 유리합니다. 등록일 데이터가 없어 이 편향을 보정하지 못했습니다.</li>
+  <li><b>이번 딜의 성과는 알 수 없습니다.</b> 하루치 단면이라 "지금까지 잘 팔려온 상품"까지만 말할 수 있습니다.</li>
+  <li><b>정가는 벤더가 정하는 값입니다.</b> 정가를 높게 적으면 할인율이 커지므로 모든 판단은 최종가로 했습니다.</li>
+  <li><b>표본이 적은 소분류는 추세로 읽지 않았습니다.</b> 우리 카테고리 12개는 전수로 하나씩 확인했습니다.</li>
+</ul></div>
+
+<h2><span class="n">03</span>먼저, 구좌 전체의 모습</h2>
+<div class="find">
+  <b>노출은 2위, 판매는 하위권</b>
+  <p>테이블·식탁·책상 10개에 의자 2개, 합쳐 <b>12개 상품이 판매 중</b>으로 전체의 21.4%입니다.
+  상품 수로는 침대 다음 2위입니다. 그런데 누적 판매는 <b>5.0%</b>에 그칩니다.
+  노출 기회를 못 받은 게 아니라, 받은 자리에서 못 팔고 있습니다.</p>
+</div>
+<div class="viz">
+  <div id="cat"></div>
+  <div class="vleg">
+    <span><span class="sw" style="background:var(--line)"></span>채널이 준 자리</span>
+    <span><span class="sw" style="background:var(--teal)"></span>1등 상품이 만든 판매</span>
+    <span><span class="sw" style="background:rgba(18,101,79,.35)"></span>나머지가 만든 판매</span>
+  </div>
+</div>
+<p class="small">위 막대가 자리, 아래 막대가 판매입니다. 침대는 아래 막대가 거의 전부 진한 색인데,
+리뷰 8.5만 건 중 8만이 한 상품에서 나왔기 때문입니다. 카테고리가 강한 게 아니라 그 상품 하나가 강한 경우입니다.
+우리 카테고리는 위 막대만 길고 아래가 짧습니다.</p>
+
+<h2><span class="n">04</span>우리 카테고리 12개를 전수로</h2>
+<p class="lead">추세로 보기엔 표본이 적어 하나씩 확인했습니다. 리뷰 순으로 정렬한 표입니다.</p>
+<div class="tw"><table>
+<thead><tr><th>브랜드</th><th>품목</th><th class="r">최종가</th><th class="r">할인율</th><th class="r">리뷰</th><th class="r">스크랩</th><th>구성</th></tr></thead>
+<tbody id="t12"></tbody>
+</table></div>
+<p class="small">상위 2개와 나머지 10개가 확연히 갈립니다. 리뷰 8,077건과 4,671건 다음이 377건으로 뚝 떨어집니다.</p>
+
+<div class="find win">
+  <b>10만원이 벽이다</b>
+  <p>가격대별로 묶어 보면 경계가 선명합니다. 10만원 아래 2개가 리뷰 4,671건과 8,077건이고,
+  그 위로는 전부 세 자릿수 이하로 내려앉습니다. 25만원 이상 3개는 리뷰가 각각 9건, 3건, 3건입니다.</p>
+</div>
+<div class="wall"><div id="wall"></div></div>
+<p class="small">구좌 전체 시세는 테이블 20.1만원, 의자 13.1만원입니다. 시세대로 들어가면 팔리지 않았다는 뜻입니다.
+다른 카테고리는 매트리스 14만원선이 기준이었는데, 우리 카테고리는 그보다 훨씬 빡빡합니다.</p>
+
+<div class="find win">
+  <b>리뷰 1·2위는 모두 테이블에 의자를 붙인 세트였다</b>
+  <p>12개 중 의자를 함께 구성한 상품은 단 2개인데, 그 2개가 그대로 리뷰 1위와 2위입니다.
+  나머지 10개는 식탁만, 책상만, 의자만 파는 단품이었고 전부 리뷰 400건 미만입니다.</p>
+</div>
+<div class="tw"><table>
+<thead><tr><th>순위</th><th>상품</th><th class="r">최종가</th><th class="r">리뷰</th><th>구성</th></tr></thead>
+<tbody>
+<tr class="win"><td>1위</td><td>세라믹·천연원목 식탁 <b>의자</b> 2~6인 특가모음</td><td class="r g">102,300</td><td class="r g">8,077</td><td class="g">식탁 + 의자</td></tr>
+<tr class="win"><td>2위</td><td>락키홈즈 책상 <b>의자</b> + 모니터받침대증정</td><td class="r g">52,353</td><td class="r g">4,671</td><td class="g">책상 + 의자 + 사은품</td></tr>
+<tr><td>3위</td><td>제노바 포세린 세라믹 식탁 테이블</td><td class="r">244,440</td><td class="r">377</td><td>식탁 단품</td></tr>
+<tr><td>4위</td><td>티폴 타원형 원목 포세린세라믹 식탁</td><td class="r">359,000</td><td class="r">109</td><td>식탁 단품</td></tr>
+<tr><td>5위</td><td>마이 체어 패브릭 책상의자</td><td class="r">118,874</td><td class="r">44</td><td>의자 단품</td></tr>
+</tbody></table></div>
+<p class="small">3위부터는 모두 단품이고 리뷰가 400건 아래로 떨어집니다.
+구좌 전체 46개로 검증했을 때도 묶음 구성은 가장 강한 요인이었습니다(상관 +0.71).
+우리 카테고리에서는 그 방식을 쓰는 곳이 12곳 중 2곳뿐이라 경쟁이 비어 있습니다.</p>
+<p class="lead">주력이 테이블·책상·의자인 우리에게 유리한 조건입니다.
+테이블과 의자를 둘 다 가지고 있어 세트를 새로 소싱하지 않고 기존 재고로 구성할 수 있기 때문입니다.</p>
+
+<div class="find flip">
+  <b>예상과 달랐던 것: 할인율은 판매와 관계가 없었다</b>
+  <p>할인율이 깊을수록 팔릴 것이라 보고 시작했습니다. 구좌 전체 46개로 계산해 보니 관계가 없었고(r = +0.02),
+  오히려 적게 팔린 절반의 할인율이 더 높았습니다. 그래서 할인율을 기준에서 빼고 최종가로 판단하도록 바꿨습니다.</p>
+</div>
+<div class="pairs">
+  <div class="pane"><h4>가격 — 관계 있음</h4>
+    <p class="cap">카테고리 시세와 비교한 정도로 5등분, 묶음별 중앙 리뷰 수</p><div id="qp"></div></div>
+  <div class="pane"><h4>할인율 — 관계 없음</h4>
+    <p class="cap">할인율로 5등분, 묶음별 중앙 리뷰 수</p><div id="qd"></div></div>
+</div>
+<p class="small">다만 우리 카테고리 안에서는 조금 다릅니다. 팔린 2개의 할인율이 54%와 67%로 높은 편이었습니다.
+할인율 자체가 원인은 아니고, <b>10만원 아래로 내리려면 결과적으로 50% 이상이 필요했던</b> 것으로 보입니다.
+목표는 할인율이 아니라 최종가입니다.</p>
+
+<h3>대기수요는 이미 쌓여 있다</h3>
+<p class="lead">폴인퍼니 식탁은 리뷰 377건인데 스크랩이 8,262건입니다. 체어팩토리 사무용의자도 리뷰 44건에 스크랩 2,870건입니다.
+찜해두고 아직 사지 않은 사람이 많다는 뜻이라, 가격만 맞으면 전환될 수 있는 수요가 남아 있습니다.</p>
+
+<h2><span class="n">05</span>그래서 무엇을 제안할 것인가</h2>
+<p class="lead">발견을 상품 구성안으로 옮겼습니다. 기존 재고를 묶는 방식이라 신규 소싱 없이 다음 주 제안이 가능합니다.</p>
+
+<div class="prop">
+  <div class="phead"><b>제안 A · 홈오피스 세트</b><span>1순위</span></div>
+  <div class="pbody">
+    <div class="pgrid">
+      <div><em>구성</em>책상 1 + 사무용의자 1 + 모니터받침대 증정</div>
+      <div><em>목표 최종가</em><b>89,000원</b></div>
+      <div><em>필요 할인율</em>정가 179,000원 기준 50%</div>
+      <div><em>근거</em>같은 구성의 락키홈즈가 52,353원에 리뷰 4,671건</div>
+    </div>
+    <p class="pnote">책상 단품은 이 구좌에서 3개가 모두 실패했습니다(리뷰 9건·3건·377건).
+    같은 책상이라도 의자를 붙이면 결과가 달라진다는 것이 데이터의 결론입니다.
+    사은품은 할인 여력이 부족할 때 체감 혜택을 만드는 수단으로, 구좌 전체에서 5건이 쓰고 있습니다.</p>
+  </div>
+</div>
+
+<div class="prop">
+  <div class="phead"><b>제안 B · 4인 식탁 세트</b><span>2순위</span></div>
+  <div class="pbody">
+    <div class="pgrid">
+      <div><em>구성</em>세라믹 식탁 1400 + 의자 4 (2·4·6인 옵션)</div>
+      <div><em>목표 최종가</em><b>109,000원</b></div>
+      <div><em>필요 할인율</em>정가 220,000원 기준 50%</div>
+      <div><em>근거</em>같은 구성의 자야캠핑이 102,300원에 리뷰 8,077건</div>
+    </div>
+    <p class="pnote">단가 부담이 큰 구성이라 의자 수를 2·4·6인으로 나눠 진입 가격을 낮추는 방식이 필요합니다.
+    경쟁 상품도 같은 방식을 썼습니다. 식탁 단품으로는 24만원, 36만원, 119만원 세 건이 모두 리뷰 400건 미만입니다.</p>
+  </div>
+</div>
+
+<div class="prop dim">
+  <div class="phead"><b>제안하지 않을 것</b><span>근거</span></div>
+  <div class="pbody">
+    <div class="pgrid">
+      <div><em>25만원 이상 단품</em>3건 모두 리뷰 10건 미만</div>
+      <div><em>의자 단독</em>1건뿐이며 리뷰 44건. 세트 부속으로만 활용</div>
+      <div><em>할인율 경쟁</em>구좌 전체에서 판매와 무관(상관 +0.02)</div>
+    </div>
+  </div>
+</div>
+
+<h3>협의해야 할 것</h3>
+<div class="tw"><table>
+<thead><tr><th>대상</th><th>내용</th><th>근거로 쓸 숫자</th></tr></thead>
+<tbody>
+<tr><td>상품팀</td><td>기존 책상·의자로 세트 SKU 구성 가능 여부</td><td>신규 소싱 불필요, 재고 활용</td></tr>
+<tr><td>벤더</td><td>세트 기준 공급가 재협의</td><td>경쟁 세트 실거래가 5.2만·10.2만원</td></tr>
+<tr><td>채널</td><td>세트 구성으로 구좌 제안</td><td>12자리 중 세트는 2개뿐, 경쟁 공백</td></tr>
+</tbody></table></div>
+
+<h2><span class="n">06</span>실무에서 어떻게 쓰는가</h2>
+<div class="use">
+  <div class="ucard"><b>벤더 협상</b>
+    <p>경쟁 채널의 실제 거래 가격을 근거로 공급가를 논의합니다. 감이 아니라 숫자로 이야기할 수 있습니다.</p>
+    <div class="quote">"오늘의집 식탁 딜에서 팔린 가격은 10만원대입니다. 현재 공급가로는 이 선을 못 맞춥니다. 식탁·의자 세트 구성으로 단가를 낮출 방법을 찾아야 합니다."</div>
+  </div>
+  <div class="ucard"><b>채널 제안</b>
+    <p>비어 있는 구성과 가격대를 찾아 제안 논리를 만듭니다.</p>
+    <div class="quote">"현재 구좌의 테이블 카테고리는 12자리 중 모음전이 1개뿐입니다. 식탁·의자 세트로 제안하면 겹치지 않습니다."</div>
+  </div>
+  <div class="ucard"><b>주간 루틴</b>
+    <p>매일 같은 양식으로 수집 → 분석 → 제안 상품 선정. 수집만 자동화하면 반복 가능한 업무가 됩니다.</p>
+  </div>
+</div>
+
+<h2><span class="n">07</span>다음 단계</h2>
+<p class="lead">지금은 하루치 단면이라 "지금까지 잘 팔려온 상품"까지만 말할 수 있습니다.
+같은 구좌를 <b>2주간 매일 수집하면 리뷰 증분</b>을 볼 수 있고, 그때부터 이번 딜에서 실제로 무엇이 팔렸는지
+측정할 수 있습니다. 누적 지표의 기간 편향도 사라집니다.</p>
+<p class="lead">여기에 우리 상품 데이터를 붙이면 제안 가능 여부가 자동으로 판정되고,
+가격 변동 알림을 붙이면 가격 정책 위반 감지에도 쓸 수 있습니다.</p>
+
+<details>
+  <summary>수집 원본 데이터 56건</summary>
+  <div class="dbody">
+    <p class="small" style="margin:12px 0">머리글을 누르면 정렬됩니다. 상품명을 누르면 원본 페이지가 새 탭에서 열립니다.</p>
+    <div class="tw"><table class="dt" id="raw"><thead><tr>
+      <th data-k="i">순번</th><th data-k="b">브랜드</th><th data-k="nm">상품</th><th data-k="c">카테고리</th>
+      <th data-k="list" class="r">정가</th><th data-k="fin" class="r">최종가</th><th data-k="dr" class="r">할인율</th>
+      <th data-k="rev" class="r">리뷰</th><th data-k="rt" class="r">평점</th><th data-k="scr" class="r">스크랩</th>
+    </tr></thead><tbody></tbody></table></div>
+  </div>
+</details>
+
+<footer>출처 store.ohou.se · 2026-09-19 수집 · 가격과 리뷰는 수집 시점 상품 상세페이지 기준</footer>
+</div>
+
+<script>
+const D = [{"i": 1, "t": "특가", "b": "웰퍼니쳐", "nm": "아틀라스&히어로 옷장 행거/거울도어/서랍형 800/1600/2400 2colors", "c": "행거·옷장", "sub": "옷장", "list": 279000, "sale": 179000, "fin": 146064, "dr": 0.4765, "base": 0.3584, "rev": 53, "rt": 4.75, "shot": 201, "scr": 46, "q": 41, "pay": "카드", "url": "https://store.ohou.se/goods/4177608"}, {"i": 2, "t": "특가", "b": "에이스침대", "nm": "인기 베스트 매트리스/침대/협탁 SALE", "c": "매트리스·토퍼", "sub": "매트리스", "list": 606000, "sale": 478740, "fin": 431872, "dr": 0.2873, "base": 0.21, "rev": 4958, "rt": 4.83, "shot": 2939, "scr": 2577, "q": 1997, "pay": "카드", "url": "https://store.ohou.se/goods/1293896"}, {"i": 3, "t": "특가", "b": "원하는날도착", "nm": "BEST 침대프레임/매트리스 호텔식 LED조명 수납침대프레임 단하루특가", "c": "침대", "sub": "침대프레임", "list": 500000, "sale": 199000, "fin": 189000, "dr": 0.622, "base": 0.602, "rev": 80766, "rt": 4.81, "shot": 51512, "scr": 2454, "q": 20168, "pay": "쿠폰", "url": "https://store.ohou.se/goods/2299421"}, {"i": 4, "t": "특가", "b": "에싸", "nm": "[에싸] BEST 인기상품 최대혜택,최저가보장!", "c": "소파", "sub": "일반소파", "list": 1860000, "sale": 1200000, "fin": 792000, "dr": 0.5742, "base": 0.3548, "rev": 2239, "rt": 4.84, "shot": 2784, "scr": 7444, "q": 1818, "pay": "카드", "url": "https://store.ohou.se/goods/966570"}, {"i": 5, "t": "특가", "b": "데일리리빙", "nm": "[5%쿠폰] 헤이 미드센추리 모듈 거실 수납장(서랍형/도어형)400/600/800/1200", "c": "서랍·수납장", "sub": "수납장", "list": 178000, "sale": 89000, "fin": 82014, "dr": 0.5392, "base": 0.5, "rev": 49, "rt": 5.0, "shot": 41, "scr": 3357, "q": 40, "pay": "카드", "url": "https://store.ohou.se/goods/4162865"}, {"i": 6, "t": "특가", "b": "한국갤러리", "nm": "SLQK 천연무늬목 호텔침대 BEST 모음전 ~30%", "c": "침대", "sub": "침대프레임", "list": 590000, "sale": 531000, "fin": 401755, "dr": 0.3191, "base": 0.1, "rev": 1605, "rt": 4.69, "shot": 2064, "scr": 4884, "q": 1990, "pay": "카드", "url": "https://store.ohou.se/goods/625534"}, {"i": 7, "t": "특가", "b": "까사미아", "nm": "캄포 모듈형 패브릭소파/단독 수납가구 특가전", "c": "서랍·수납장", "sub": "서랍장", "list": 355000, "sale": 355000, "fin": 202350, "dr": 0.43, "base": 0.0, "rev": 10595, "rt": 4.8, "shot": 9179, "scr": 111, "q": 6691, "pay": "쿠폰", "url": "https://store.ohou.se/goods/3957834"}, {"i": 8, "t": "특가", "b": "한샘", "nm": "[오늘의집 단독] 단 하루! 한샘 ONLY BEST 상품 특가전", "c": "매트리스·토퍼", "sub": "매트리스", "list": 234000, "sale": 181000, "fin": 177380, "dr": 0.242, "base": 0.2265, "rev": 3298, "rt": 4.86, "shot": 4871, "scr": 22, "q": 1019, "pay": "쿠폰", "url": "https://store.ohou.se/goods/4156162"}, {"i": 9, "t": "일반", "b": "크라운퍼니쳐", "nm": "[오늘의집 단독] 단하루 119,200원 노엘 반자동 리프트업 통수납 침대프레임 SS/Q", "c": "침대", "sub": "침대프레임", "list": 299000, "sale": 149000, "fin": 113240, "dr": 0.6213, "base": 0.5017, "rev": 2522, "rt": 4.8, "shot": 1068, "scr": 35059, "q": 1228, "pay": "카드", "url": "https://store.ohou.se/goods/3603649"}, {"i": 10, "t": "일반", "b": "에이엘디자인", "nm": "미드센추리한 공간의 느낌을 줄수 있는 가구 모음전", "c": "거울", "sub": "전신거울", "list": 220000, "sale": 169000, "fin": 149312, "dr": 0.3213, "base": 0.2318, "rev": 317, "rt": 4.88, "shot": 373, "scr": 9, "q": 127, "pay": "쿠폰", "url": "https://store.ohou.se/goods/4130555"}, {"i": 11, "t": "일반", "b": "지누스", "nm": "[오늘의집 단독] 지누스 ONLY 오늘의집 전용 매트리스 모음전 S/SS/Q/K", "c": "매트리스·토퍼", "sub": "매트리스", "list": 518000, "sale": 199000, "fin": 184300, "dr": 0.6442, "base": 0.6158, "rev": 17554, "rt": 4.8, "shot": 11163, "scr": 605, "q": 1761, "pay": "쿠폰", "url": "https://store.ohou.se/goods/3532106"}, {"i": 12, "t": "일반", "b": "에이픽스", "nm": "코너핏 데스크 ㄱ자 컴퓨터책상", "c": "테이블·식탁·책상", "sub": "책상", "list": 239000, "sale": 179000, "fin": 179000, "dr": 0.251, "base": 0.251, "rev": 3, "rt": 5.0, "shot": 2, "scr": 236, "q": 1, "pay": "없음", "url": "https://store.ohou.se/goods/4124258"}, {"i": 13, "t": "일반", "b": "비아크", "nm": "[오늘의집 단독] 오직 오늘의집에서만,  비아크 단독 가구 라인업!", "c": "의자", "sub": "스툴·벤치", "list": 199000, "sale": 159200, "fin": 143280, "dr": 0.28, "base": 0.2, "rev": 28, "rt": 4.86, "shot": 278, "scr": 16, "q": 30, "pay": "쿠폰", "url": "https://store.ohou.se/goods/4182357"}, {"i": 14, "t": "일반", "b": "락키홈즈", "nm": "[쿠폰할인] 락키홈즈 책상 의자 + 모니터받침대증정", "c": "테이블·식탁·책상", "sub": "책상", "list": 159000, "sale": 59900, "fin": 52353, "dr": 0.6707, "base": 0.6233, "rev": 4671, "rt": 4.79, "shot": 1864, "scr": 93, "q": 735, "pay": "쿠폰", "url": "https://store.ohou.se/goods/3679706"}, {"i": 15, "t": "일반", "b": "파로마 공식스토어", "nm": "오늘의딜 / 국내생산 / 누비아 저상형침대 프레임만 Q/K/LK 겸용 (매트리스선택)", "c": "침대", "sub": "침대프레임", "list": 539000, "sale": 399000, "fin": 329000, "dr": 0.3896, "base": 0.2597, "rev": 25, "rt": 4.92, "shot": 20, "scr": 1946, "q": 41, "pay": "쿠폰", "url": "https://store.ohou.se/goods/3850386"}, {"i": 16, "t": "일반", "b": "024홈", "nm": "국민토퍼 매트리스 3단 접이식 토퍼 모음전 5/8/12/16cm MS/SS/Q", "c": "매트리스·토퍼", "sub": "토퍼", "list": 55800, "sale": 28800, "fin": 27098, "dr": 0.5144, "base": 0.4839, "rev": 19461, "rt": 4.79, "shot": 14407, "scr": 8298, "q": 2190, "pay": "카드", "url": "https://store.ohou.se/goods/1325192"}, {"i": 17, "t": "일반", "b": "눅텐", "nm": "[오늘의집 단독] 모보 패브릭 모듈 소파 4types / 4colors", "c": "소파", "sub": "일반소파", "list": 124000, "sale": 99000, "fin": 99000, "dr": 0.2016, "base": 0.2016, "rev": 322, "rt": 4.8, "shot": 272, "scr": 12431, "q": 108, "pay": "없음", "url": "https://store.ohou.se/goods/4066870"}, {"i": 18, "t": "일반", "b": "오늘의집 layer", "nm": "refine / 다양하게 조합하는 빅수납 호텔 침대, 모던형/템바형, SS/Q,K", "c": "침대", "sub": "침대프레임", "list": 613000, "sale": 429000, "fin": 399000, "dr": 0.3491, "base": 0.3002, "rev": 364, "rt": 4.79, "shot": 261, "scr": 11604, "q": 384, "pay": "쿠폰", "url": "https://store.ohou.se/goods/2518275"}, {"i": 19, "t": "일반", "b": "큐브", "nm": "[오늘의집 단독] NEW컬러 맞춤제작 블라인드 시스템 드레스룸", "c": "행거·옷장", "sub": "드레스룸", "list": 13900, "sale": 7800, "fin": 7800, "dr": 0.4388, "base": 0.4388, "rev": 13630, "rt": 4.7, "shot": 9219, "scr": 156978, "q": 21653, "pay": "없음", "url": "https://store.ohou.se/goods/121821"}, {"i": 20, "t": "일반", "b": "라뜰리에드보아", "nm": "[오늘의집 단독] Oho 스피커 LP랙 중형 ESF-LPR1M", "c": "진열장·책장", "sub": "진열장·장식장", "list": 198000, "sale": 78000, "fin": 70200, "dr": 0.6455, "base": 0.6061, "rev": 330, "rt": 4.9, "shot": 335, "scr": 14338, "q": 51, "pay": "쿠폰", "url": "https://store.ohou.se/goods/2787690"}, {"i": 21, "t": "일반", "b": "눅텐", "nm": "[오늘의집 단독] 모보 패브릭 리프트업 수납 침대 프레임 SS/D/Q 2colors", "c": "침대", "sub": "침대프레임", "list": 324000, "sale": 259000, "fin": 259000, "dr": 0.2006, "base": 0.2006, "rev": 115, "rt": 4.94, "shot": 65, "scr": 2607, "q": 83, "pay": "없음", "url": "https://store.ohou.se/goods/4066866"}, {"i": 22, "t": "일반", "b": "오늘의집 layer", "nm": "studio / 코타 호텔 침대, 수납형, SS/Q,K/LK", "c": "침대", "sub": "침대프레임", "list": 760000, "sale": 760000, "fin": 690000, "dr": 0.0921, "base": 0.0, "rev": 140, "rt": 4.8, "shot": 123, "scr": 6292, "q": 219, "pay": "쿠폰", "url": "https://store.ohou.se/goods/3898593"}, {"i": 23, "t": "일반", "b": "얼라이브즈", "nm": "이지 케어 엣지 플루라 선반 진열장 3단 800/1000/1200, 2단 600", "c": "선반", "sub": "스탠드선반", "list": 50000, "sale": 34900, "fin": 30468, "dr": 0.3906, "base": 0.302, "rev": 1112, "rt": 4.9, "shot": 574, "scr": 51910, "q": 104, "pay": "카드", "url": "https://store.ohou.se/goods/3301033"}, {"i": 24, "t": "일반", "b": "포홈", "nm": "빈티지 뉴트로 2인소파 버킨/체스터/슈슈/콤보/아델", "c": "소파", "sub": "일반소파", "list": 490000, "sale": 149000, "fin": 104300, "dr": 0.7871, "base": 0.6959, "rev": 1612, "rt": 4.7, "shot": 1559, "scr": 65497, "q": 1144, "pay": "쿠폰", "url": "https://store.ohou.se/goods/305023"}, {"i": 25, "t": "일반", "b": "체어팩토리", "nm": "마이 체어 패브릭 홈 오피스 사무실 학생 공부 책상의자 2colors", "c": "의자", "sub": "학생·사무용의자", "list": 189000, "sale": 129000, "fin": 118874, "dr": 0.371, "base": 0.3175, "rev": 44, "rt": 4.8, "shot": 45, "scr": 2870, "q": 5, "pay": "카드", "url": "https://store.ohou.se/goods/4108271"}, {"i": 26, "t": "일반", "b": "폴인퍼니", "nm": "제노바 포세린 세라믹 식탁 테이블 블랙 4인용 6인용 1400/1600/1800", "c": "테이블·식탁·책상", "sub": "식탁", "list": 418600, "sale": 312000, "fin": 244440, "dr": 0.4161, "base": 0.2547, "rev": 377, "rt": 4.9, "shot": 231, "scr": 8262, "q": 182, "pay": "카드", "url": "https://store.ohou.se/goods/3552070"}, {"i": 27, "t": "일반", "b": "한샘", "nm": "한샘몰pick BEST상품 특별혜택가", "c": "유아동가구", "sub": "침대", "list": 500000, "sale": 294900, "fin": 250665, "dr": 0.4987, "base": 0.4102, "rev": 36310, "rt": 4.75, "shot": 34374, "scr": 30, "q": 15580, "pay": "쿠폰", "url": "https://store.ohou.se/goods/4131102"}, {"i": 28, "t": "일반", "b": "원하는날도착", "nm": "[14일무료체험] 원하는날도착 BEST 포켓/롤팩/유로탑 매트리스", "c": "매트리스·토퍼", "sub": "매트리스", "list": 218000, "sale": 149000, "fin": 141550, "dr": 0.3507, "base": 0.3165, "rev": 44264, "rt": 4.81, "shot": 26364, "scr": 71, "q": 7409, "pay": "쿠폰", "url": "https://store.ohou.se/goods/4182292"}, {"i": 29, "t": "일반", "b": "이노센트", "nm": "혜택가 26.5만/ 스틸라 원목 미드센츄리 모듈 거실장(선반형/서랍형) 1200~2000", "c": "거실장·TV장", "sub": "높은거실장·사이드보드", "list": 525000, "sale": 289000, "fin": 265050, "dr": 0.4951, "base": 0.4495, "rev": 92, "rt": 4.8, "shot": 45, "scr": 5967, "q": 23, "pay": "카드", "url": "https://store.ohou.se/goods/2708569"}, {"i": 30, "t": "일반", "b": "삼익가구", "nm": "RESERVE 모블릭 다비스 패브릭 모듈 소파 1인용/3인/4인/6인(구스쿠션증정)", "c": "소파", "sub": "일반소파", "list": 799000, "sale": 290000, "fin": 232800, "dr": 0.7086, "base": 0.637, "rev": 5, "rt": 5.0, "shot": 12, "scr": 226, "q": 9, "pay": "쿠폰", "url": "https://store.ohou.se/goods/4198394"}, {"i": 31, "t": "일반", "b": "장인가구", "nm": "엘리베어 반자동 리프트업 대용량 통수납 서랍 침대 프레임 SS/Q", "c": "침대", "sub": "침대프레임", "list": 449000, "sale": 131000, "fin": 124450, "dr": 0.7228, "base": 0.7082, "rev": 17, "rt": 4.94, "shot": 11, "scr": 595, "q": 59, "pay": "쿠폰", "url": "https://store.ohou.se/goods/4112099"}, {"i": 32, "t": "일반", "b": "레브루", "nm": "누크 코너행거 미니 미드센츄리 3colors", "c": "행거·옷장", "sub": "행거", "list": 218000, "sale": 103790, "fin": 81821, "dr": 0.6247, "base": 0.5239, "rev": 20, "rt": 4.9, "shot": 6, "scr": 1534, "q": 1, "pay": "카드", "url": "https://store.ohou.se/goods/4015527"}, {"i": 33, "t": "일반", "b": "보니애가구", "nm": "혜택가70.2만/아틀란 블리넌패브릭 3세대 리클라이너 쇼파 슬라이드 무빙 모션 소파 4인용", "c": "소파", "sub": "리클라이너", "list": 1499000, "sale": 849000, "fin": 702280, "dr": 0.5315, "base": 0.4336, "rev": 87, "rt": 4.9, "shot": 55, "scr": 1397, "q": 95, "pay": "카드", "url": "https://store.ohou.se/goods/3952305"}, {"i": 34, "t": "일반", "b": "가구의정석", "nm": "[오늘의집단독] 토리 화장대 확장형 콘솔 수납화장대 800/1200 (LED조명/수납거울)", "c": "화장대·콘솔", "sub": "수납화장대", "list": 225000, "sale": 149000, "fin": 143000, "dr": 0.3644, "base": 0.3378, "rev": 10, "rt": 4.2, "shot": 12, "scr": 653, "q": 9, "pay": "쿠폰", "url": "https://store.ohou.se/goods/4111681"}, {"i": 35, "t": "일반", "b": "홈비", "nm": "쓰러지지않는! 라운드마감 아티후크 스탠드 옷걸이 행거 후크형", "c": "행거·옷장", "sub": "행거", "list": 65000, "sale": 49900, "fin": 47405, "dr": 0.2707, "base": 0.2323, "rev": 1338, "rt": 4.62, "shot": 472, "scr": 21037, "q": 57, "pay": "쿠폰", "url": "https://store.ohou.se/goods/3210228"}, {"i": 36, "t": "일반", "b": "스칸디아", "nm": "E0등급 LPM마감 스테온 공간맞춤 빌트인 프리미엄 호텔 침대 SS/Q/K", "c": "침대", "sub": "침대프레임", "list": 799000, "sale": 279000, "fin": 279000, "dr": 0.6508, "base": 0.6508, "rev": 18, "rt": 4.9, "shot": 13, "scr": 500, "q": 79, "pay": "없음", "url": "https://store.ohou.se/goods/4115995"}, {"i": 37, "t": "일반", "b": "아메리카나베드", "nm": "허리에진심 척추탄탄 3매직 베이직 롤팩매트리스 (국내생산)", "c": "매트리스·토퍼", "sub": "매트리스", "list": 242000, "sale": 99900, "fin": 99900, "dr": 0.5872, "base": 0.5872, "rev": 3008, "rt": 4.76, "shot": 1485, "scr": 27692, "q": 968, "pay": "없음", "url": "https://store.ohou.se/goods/319053"}, {"i": 38, "t": "일반", "b": "아이엔지홈", "nm": "[오늘의집 단독] 알렉스 카페장 1200 홈카페 수납장", "c": "서랍·수납장", "sub": "주방수납장", "list": 237000, "sale": 189000, "fin": 189000, "dr": 0.2025, "base": 0.2025, "rev": 3, "rt": 5.0, "shot": 1, "scr": 440, "q": 3, "pay": "없음", "url": "https://store.ohou.se/goods/4129272"}, {"i": 39, "t": "일반", "b": "퍼니코", "nm": "오프 미드센츄리 3단 콘솔 서랍 화장대 (거울 선택)", "c": "화장대·콘솔", "sub": "일반화장대", "list": 209000, "sale": 109000, "fin": 101370, "dr": 0.515, "base": 0.4785, "rev": 21, "rt": 4.86, "shot": 23, "scr": 2146, "q": 5, "pay": "쿠폰", "url": "https://store.ohou.se/goods/4080685"}, {"i": 40, "t": "일반", "b": "원스텝퍼니처", "nm": "미드센츄리 수납장 모듈 협탁 철제 선반 서랍 레오 400 600 E0", "c": "서랍·수납장", "sub": "수납장", "list": 90000, "sale": 43900, "fin": 41705, "dr": 0.5366, "base": 0.5122, "rev": 72, "rt": 4.75, "shot": 14, "scr": 3035, "q": 54, "pay": "쿠폰", "url": "https://store.ohou.se/goods/4081372"}, {"i": 41, "t": "일반", "b": "여백", "nm": "[오늘의집 단독] 후기베개증정 여백  프리미엄 스프링 매트리스 SS/Q/K/LK", "c": "매트리스·토퍼", "sub": "매트리스", "list": 999000, "sale": 549000, "fin": 459000, "dr": 0.5405, "base": 0.4505, "rev": 220, "rt": 4.9, "shot": 174, "scr": 593, "q": 47, "pay": "쿠폰", "url": "https://store.ohou.se/goods/3445376"}, {"i": 42, "t": "일반", "b": "핏슬립", "nm": "[오늘의집 단독] 마인BED 부클 패브릭 호텔 커스텀 맞춤 침대  홈웨어 선착순 무료 증정", "c": "침대", "sub": "침대프레임", "list": 458000, "sale": 229000, "fin": 206673, "dr": 0.5487, "base": 0.5, "rev": 24, "rt": 4.92, "shot": 74, "scr": 1617, "q": 52, "pay": "쿠폰", "url": "https://store.ohou.se/goods/3675170"}, {"i": 43, "t": "일반", "b": "우드띠어리", "nm": "팔레트 이동식 철제 스틸 사이드테이블", "c": "테이블·식탁·책상", "sub": "사이드테이블", "list": 250000, "sale": 160400, "fin": 147809, "dr": 0.4088, "base": 0.3584, "rev": 35, "rt": 4.83, "shot": 40, "scr": 2219, "q": 9, "pay": "카드", "url": "https://store.ohou.se/goods/3979579"}, {"i": 44, "t": "일반", "b": "에싸", "nm": "[원형쿠션2개증정]세즈필로 컴팩트 4인 베티버 천연 면피 소가죽 소파", "c": "소파", "sub": "일반소파", "list": 4490000, "sale": 2600000, "fin": 1830000, "dr": 0.5924, "base": 0.4209, "rev": 7, "rt": 4.6, "shot": 15, "scr": 837, "q": 15, "pay": "카드", "url": "https://store.ohou.se/goods/4044480"}, {"i": 45, "t": "일반", "b": "홈앤힐", "nm": "[오늘의집 단독] 티폴 타원형 4/6인용 원목 포세린세라믹 식탁 1600/2000", "c": "테이블·식탁·책상", "sub": "식탁", "list": 570000, "sale": 369000, "fin": 359000, "dr": 0.3702, "base": 0.3526, "rev": 109, "rt": 4.94, "shot": 43, "scr": 114, "q": 2, "pay": "쿠폰", "url": "https://store.ohou.se/goods/4157956"}, {"i": 46, "t": "일반", "b": "눕", "nm": "눕 국내생산 프리미엄 호텔 LED 빅 수납 침대 프레임 / 매트리스 SS/Q/K", "c": "침대", "sub": "침대프레임", "list": 709000, "sale": 489000, "fin": 431641, "dr": 0.3912, "base": 0.3103, "rev": 30, "rt": 4.97, "shot": 157, "scr": 2, "q": 11, "pay": "카드", "url": "https://store.ohou.se/goods/4080904"}, {"i": 47, "t": "일반", "b": "DF동서가구", "nm": "출시혜택가 27.2만/ 리에나 고기능성 아쿠아텍스 패브릭 3인/4인 소파(+스툴/카우치)", "c": "소파", "sub": "일반소파", "list": 480000, "sale": 336000, "fin": 272916, "dr": 0.4314, "base": 0.3, "rev": 1, "rt": 4.0, "shot": 0, "scr": 66, "q": 3, "pay": "카드", "url": "https://store.ohou.se/goods/4186209"}, {"i": 48, "t": "일반", "b": "아우스", "nm": "FJ06 700폭 양방향 코너형 전동 모션데스크 L자 ㄱ자 코너 전동책상 원목 모션데스크", "c": "테이블·식탁·책상", "sub": "책상", "list": 303800, "sale": 223800, "fin": 223800, "dr": 0.2633, "base": 0.2633, "rev": 9, "rt": 5.0, "shot": 3, "scr": 180, "q": 6, "pay": "없음", "url": "https://store.ohou.se/goods/4120548"}, {"i": 49, "t": "일반", "b": "자야캠핑", "nm": "[쿠폰할인]세라믹,천연원목 식탁 의자 2~6인 특가모음", "c": "테이블·식탁·책상", "sub": "식탁", "list": 220000, "sale": 110000, "fin": 102300, "dr": 0.535, "base": 0.5, "rev": 8077, "rt": 4.79, "shot": 7764, "scr": 2829, "q": 2921, "pay": "쿠폰", "url": "https://store.ohou.se/goods/1982968"}, {"i": 50, "t": "일반", "b": "모헤세", "nm": "멜로 전동 슬라이딩 트윈 침대 프레임 SS+SS SS+Q/K", "c": "침대", "sub": "침대프레임", "list": 3100000, "sale": 1550000, "fin": 1379500, "dr": 0.555, "base": 0.5, "rev": 10, "rt": 4.6, "shot": 6, "scr": 174, "q": 2, "pay": "쿠폰", "url": "https://store.ohou.se/goods/4055168"}, {"i": 51, "t": "일반", "b": "헤즈로", "nm": "레스토 우드슬랩 원목 밥상 교자상 좌상 찻상 테이블 4 sizes", "c": "테이블·식탁·책상", "sub": "좌식테이블", "list": 285000, "sale": 199000, "fin": 164474, "dr": 0.4229, "base": 0.3018, "rev": 23, "rt": 4.65, "shot": 7, "scr": 1009, "q": 5, "pay": "카드", "url": "https://store.ohou.se/goods/1916983"}, {"i": 52, "t": "일반", "b": "헤즈로", "nm": "[오늘의집 단독] 엘림 원목 거실 소파 테이블 직사각형 블랙", "c": "테이블·식탁·책상", "sub": "거실·소파테이블", "list": 498000, "sale": 348000, "fin": 287622, "dr": 0.4224, "base": 0.3012, "rev": 0, "rt": 0.0, "shot": 0, "scr": 123, "q": 0, "pay": "카드", "url": "https://store.ohou.se/goods/4189271"}, {"i": 53, "t": "일반", "b": "시스디자인", "nm": "마노 오크 원목 식탁 테이블 내추럴오크/블랙 1600/1800/2000", "c": "테이블·식탁·책상", "sub": "식탁", "list": 1950000, "sale": 1200000, "fin": 1190000, "dr": 0.3897, "base": 0.3846, "rev": 3, "rt": 5.0, "shot": 8, "scr": 598, "q": 0, "pay": "쿠폰", "url": "https://store.ohou.se/goods/4164687"}, {"i": 54, "t": "일반", "b": "가온퍼니처", "nm": "트렌디 인기 주방가구/수납가구 모음전 (주방수납장/거실장/화장대/수납장)", "c": "서랍·수납장", "sub": "주방수납장", "list": 69900, "sale": 54900, "fin": 52155, "dr": 0.2539, "base": 0.2146, "rev": 8593, "rt": 4.77, "shot": 4587, "scr": 100, "q": 2805, "pay": "쿠폰", "url": "https://store.ohou.se/goods/1343169"}, {"i": 55, "t": "일반", "b": "시스디자인", "nm": "엘라 부클레 패브릭 모듈 소파", "c": "소파", "sub": "일반소파", "list": 890000, "sale": 632400, "fin": 602400, "dr": 0.3231, "base": 0.2894, "rev": 126, "rt": 4.7, "shot": 149, "scr": 5398, "q": 72, "pay": "쿠폰", "url": "https://store.ohou.se/goods/2126286"}, {"i": 56, "t": "일반", "b": "룸앤홈", "nm": "엘파 모듈형 시스템 행거 무타공 철제 수납선", "c": "선반", "sub": "스탠드선반", "list": 258000, "sale": 124000, "fin": 117800, "dr": 0.5434, "base": 0.5194, "rev": 77, "rt": 4.9, "shot": 143, "scr": 9, "q": 17, "pay": "쿠폰", "url": "https://store.ohou.se/goods/4216588"}];
+const W=n=>n.toLocaleString('ko-KR');
+const P=n=>(n*100).toFixed(0)+'%';
+const med=a=>{const s=[...a].sort((x,y)=>x-y),m=s.length>>1;return s.length%2?s[m]:Math.round((s[m-1]+s[m])/2)};
+const OUR=['테이블·식탁·책상','의자'];
+const CATS=[...new Set(D.map(d=>d.c))].map(c=>({c,n:D.filter(d=>d.c===c).length})).sort((a,b)=>b.n-a.n);
+const B={};
+CATS.forEach(({c,n})=>{const g=D.filter(d=>d.c===c).sort((a,b)=>b.rev-a.rev),tot=g.reduce((s,d)=>s+d.rev,0);
+  B[c]={n,med:med(g.map(d=>d.fin)),tot,top:g[0].rev,rel:n>=4}});
+D.forEach(d=>{d.bundle=/모음전|특가전|BEST|SALE|모음/.test(d.nm);
+  d.solo=/오늘의집\s?단독/.test(d.nm);d.gift=/증정|무료|체험/.test(d.nm);
+  const g=D.filter(x=>x.c===d.c).sort((a,b)=>b.rev-a.rev);d.rank=g.findIndex(x=>x.i===d.i)+1});
+
+/* category bars */
+const TOT=D.reduce((s,d)=>s+d.rev,0);
+const rows=CATS.filter(o=>o.n>=2).map(({c,n})=>({c,n,sale:B[c].tot/TOT*100,top:B[c].top/TOT*100}))
+  .sort((a,b)=>b.n-a.n);
+const MXs=Math.max(...rows.map(r=>r.sale)),MXn=Math.max(...rows.map(r=>r.n));
+document.getElementById('cat').innerHTML=rows.map(r=>`
+ <div class="grow"><div class="gname${OUR.includes(r.c)?' hl':''}">${r.c}</div><div>
+   <div class="gbar" style="margin-bottom:3px"><div class="gseg" style="width:${r.n/MXn*100}%;background:var(--line)"></div></div>
+   <div class="gbar"><div class="gseg" style="width:${r.top/MXs*100}%;background:var(--teal)"></div>
+     <div class="gseg" style="width:${(r.sale-r.top)/MXs*100}%;background:rgba(18,101,79,.35)"></div></div>
+ </div><div class="gval">${r.n}자리<br><span style="font-size:11.5px">판매 ${r.sale.toFixed(1)}%</span></div></div>`).join('');
+
+/* our 12 */
+const T=D.filter(d=>OUR.includes(d.c)).sort((a,b)=>b.rev-a.rev);
+document.getElementById('t12').innerHTML=T.map(d=>{const win=d.rev>1000;
+ return `<tr class="${win?'win':''}"><td>${d.b}</td><td>${d.sub}</td>
+ <td class="r ${d.fin<100000?'g':''}">${W(d.fin)}</td><td class="r">${P(d.dr)}</td>
+ <td class="r ${win?'g':''}">${W(d.rev)}</td><td class="r">${W(d.scr)}</td>
+ <td>${d.bundle?'<span class="tag">모음전</span>':'<span class="bd">단품</span>'}</td></tr>`}).join('');
+
+/* price wall */
+const bands=[[0,100000,'10만원 미만'],[100000,150000,'10~15만'],[150000,250000,'15~25만'],[250000,1e12,'25만 이상']];
+const wr=bands.map(([a,b,l])=>{const g=T.filter(d=>d.fin>=a&&d.fin<b);
+  return {l,n:g.length,v:g.length?med(g.map(d=>d.rev)):0}});
+const MXw=Math.max(...wr.map(r=>r.v));
+document.getElementById('wall').innerHTML=wr.map(r=>`<div class="wrow">
+ <div class="wlab">${r.l}</div>
+ <div class="wt"><div class="wf" style="width:${Math.max(1.5,r.v/MXw*100)}%;background:${r.v>1000?'var(--teal)':'var(--rose)'}"></div></div>
+ <div class="wv">리뷰 ${W(r.v)} <span style="color:var(--mute)">(${r.n}개)</span></div></div>`).join('');
+
+/* quintiles */
+function q(el,rows){const mx=Math.max(...rows.map(r=>r.v));
+ document.getElementById(el).innerHTML=rows.map(r=>`<div class="qrow">
+  <div class="qlab">${r.l}</div><div class="qt"><div class="qf" style="width:${Math.max(3,r.v/mx*100)}%;background:${r.c}"></div></div>
+  <div class="qv">${W(r.v)}</div></div>`).join('')}
+q('qp',[{l:'시세보다 쌈',v:2067,c:'var(--teal)'},{l:'조금 쌈',v:1338,c:'var(--teal)'},
+ {l:'시세와 같음',v:49,c:'var(--rose)'},{l:'조금 비쌈',v:109,c:'var(--ochre)'},
+ {l:'많이 비쌈',v:53,c:'var(--ochre)'}]);
+q('qd',[{l:'할인 25%',v:231,c:'var(--mute)'},{l:'37%',v:109,c:'var(--mute)'},
+ {l:'43%',v:87,c:'var(--mute)'},{l:'55%',v:72,c:'var(--mute)'},{l:'65%',v:1612,c:'var(--mute)'}]);
+
+/* raw */
+let sk='rev',sd=-1;
+document.querySelectorAll('#raw th').forEach(th=>th.addEventListener('click',()=>{
+ const k=th.dataset.k;if(sk===k)sd=-sd;else{sk=k;sd=['i','b','nm','c'].includes(k)?1:-1}raw()}));
+function raw(){
+ const r=[...D].sort((a,b)=>{const x=a[sk],y=b[sk];
+  return (typeof x==='string'?x.localeCompare(y,'ko'):x-y)*sd});
+ document.querySelectorAll('#raw th').forEach(th=>{
+  th.className=['list','fin','dr','rev','rt','scr'].includes(th.dataset.k)?'r':'';
+  if(th.dataset.k===sk)th.classList.add(sd>0?'up':'dn')});
+ document.querySelector('#raw tbody').innerHTML=r.map(d=>`<tr${OUR.includes(d.c)?' class="win"':''}>
+  <td>${d.i}</td><td>${d.b}</td>
+  <td><a class="pn" href="${d.url}" target="_blank" rel="noopener">${d.nm}</a></td>
+  <td>${d.c}<div class="bd">${B[d.c].rel?d.rank+'/'+B[d.c].n+'위':'표본 부족'}</div></td>
+  <td class="r">${W(d.list)}</td><td class="r">${W(d.fin)}</td><td class="r">${P(d.dr)}</td>
+  <td class="r">${W(d.rev)}</td><td class="r">${d.rt?d.rt.toFixed(2):'—'}</td><td class="r">${W(d.scr)}</td></tr>`).join('');
+}
+raw();
+</script>
+</body>
+</html>
